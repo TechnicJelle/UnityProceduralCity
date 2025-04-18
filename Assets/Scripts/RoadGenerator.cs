@@ -52,12 +52,29 @@ public class RoadGenerator : MonoBehaviour
 
 	private void OnDrawGizmos()
 	{
+		//Apply the road generator transform to the gizmos
+		Gizmos.matrix = transform.localToWorldMatrix;
+
+		//Draw the middle spawn area
+		Gizmos.color = Color.blue;
+		Gizmos.DrawWireCube(transform.position, new Vector3(width * 2 * middleSpawnFactor, height * 2 * middleSpawnFactor, 0));
+
+		//Draw the bounding box
+		Gizmos.color = Color.green;
+		Gizmos.DrawWireCube(transform.position, new Vector3(width, height, 0));
+
+		//The points are stored offset, so we move the drawing by half width and height
+		Matrix4x4 translationMatrix = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, 0));
+		Gizmos.matrix *= translationMatrix;
+
 		// Draw the points
 		foreach(Point p in Points)
 		{
-			Gizmos.DrawSphere(p.Pos, 0.1f);
 			p.Render();
 		}
+
+		// Reset the matrix to identity to avoid affecting other gizmos
+		Gizmos.matrix = Matrix4x4.identity;
 	}
 
 	private void Update()

@@ -6,28 +6,30 @@ public class Point
 {
 	private readonly RoadGenerator _roadGenerator;
 
-	public Vector2 Pos;
+	private readonly Vector2 _pos;
 	private readonly Vector2 _dir;
 	public bool Head = true;
 	public readonly List<Point> Connections = new();
 	private float _splitChance; //0..1
+	private readonly bool _startingPoint = false;
 
 	public Point(RoadGenerator roadGenerator, float x, float y)
 	{
 		_roadGenerator = roadGenerator;
 
-		Pos = new Vector2(x, y);
+		_pos = new Vector2(x, y);
 		_dir = Random.insideUnitCircle.normalized;
 		_splitChance = 0.0f;
+		_startingPoint = true;
 	}
 
 	private Point(RoadGenerator roadGenerator, Vector2 newPos, Vector2 newDir, Point previous)
 	{
 		_roadGenerator = roadGenerator;
 
-		Pos = newPos;
+		_pos = newPos;
 		_dir = newDir;
-		if (Pos.x < 0.0f || Pos.x > _roadGenerator.width || Pos.y < 0.0f || Pos.y > _roadGenerator.height) Head = false;
+		if (_pos.x < 0.0f || _pos.x > _roadGenerator.width || _pos.y < 0.0f || _pos.y > _roadGenerator.height) Head = false;
 		Connections.Add(previous);
 		_splitChance = previous._splitChance + roadGenerator.newRoadChance;
 	}
@@ -36,15 +38,23 @@ public class Point
 	{
 		foreach(Point c in Connections)
 		{
-			Gizmos.color = new Color(1f, 1f, 0f);
-			Gizmos.DrawLine(Pos, c.Pos); //TODO: Arrow
+			if (_startingPoint)
+			{
+				Gizmos.color = Color.grey;
+			}
+			else
+			{
+				Gizmos.color = Head ? Color.red : Color.yellow;
+			}
+			Gizmos.DrawSphere(_pos, _startingPoint ? 0.3f : 0.1f);
+			Gizmos.DrawLine(_pos, c._pos); //TODO: Arrow
 		}
 	}
 	private bool CheckIntersectWithAnyConnections(Vector2 currentPos, Vector2 newPos)
 	{
 		foreach(Point c in Connections)
 		{
-			if (Intersect3(c.Pos, Pos, currentPos, newPos) != null)
+			if (Intersect3(c._pos, _pos, currentPos, newPos) != null)
 			{
 				return true;
 			}
@@ -84,12 +94,12 @@ public class Point
 	/// Returns null when not made a new steppy, but connected to another steppy instead
 	private Point? GenerateNewSteppy(Vector2 stepDir)
 	{
-		Vector2 newPos = Pos + stepDir * _roadGenerator.stepSize;
+		Vector2 newPos = _pos + stepDir * _roadGenerator.stepSize;
 		Point? intersectionPoint = null;
 		foreach(Point? p in _roadGenerator.Points)
 		{
 			if (p == this) continue;
-			if (p.CheckIntersectWithAnyConnections(Pos, newPos))
+			if (p.CheckIntersectWithAnyConnections(_pos, newPos))
 			{
 				intersectionPoint = p;
 				break;
@@ -109,7 +119,7 @@ public class Point
 		//find the closest point to this point
 		foreach(Point pp in potentialConnectionPoints)
 		{
-			float dist = Vector2.Distance(Pos, pp.Pos);
+			float dist = Vector2.Distance(_pos, pp._pos);
 			if (dist >= smallestDistance) continue;
 			smallestDistance = dist;
 			closestPoint = pp;
