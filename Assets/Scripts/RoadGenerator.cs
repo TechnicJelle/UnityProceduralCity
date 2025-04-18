@@ -72,15 +72,14 @@ public class RoadGenerator : MonoBehaviour
 	{
 		if (!_completed)
 		{
-			List<Point> newPoints = new();
-			foreach(Point p in Points)
+			for(int i = 0; i < Points.Count; i++)
 			{
+				Point p = Points[i];
 				if (p.Head)
 				{
-					newPoints.AddRange(p.Step());
+					Points.AddRange(p.Step());
 				}
 			}
-			Points.AddRange(newPoints);
 
 			_completed = CheckDone();
 		}
