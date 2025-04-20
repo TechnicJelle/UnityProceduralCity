@@ -1,6 +1,9 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Matrix4x4 = UnityEngine.Matrix4x4;
 using Random = UnityEngine.Random;
+using Vector3 = UnityEngine.Vector3;
 
 public class RoadGenerator : MonoBehaviour
 {
@@ -36,17 +39,23 @@ public class RoadGenerator : MonoBehaviour
 #region Private Fields
 
 	public readonly List<Point> Points = new();
-	private bool _completed = false;
+
+	public enum GenerationState
+	{
+		Empty,
+		Generating,
+		Finished,
+	}
+
+	public GenerationState Completed { get; private set; } = GenerationState.Empty;
 
 #endregion
 
-	private void Start()
+	private void OnValidate()
 	{
-		for(int i = 0; i < initialStartPoints; i++)
+		if (Points.Count == 0)
 		{
-			float x = Random.Range(width * (0.5f - middleSpawnFactor), width * (0.5f + middleSpawnFactor));
-			float y = Random.Range(height * (0.5f - middleSpawnFactor), height * (0.5f + middleSpawnFactor));
-			Points.Add(new Point(this, x, y));
+			Completed = GenerationState.Empty;
 		}
 	}
 
@@ -57,11 +66,11 @@ public class RoadGenerator : MonoBehaviour
 
 		//Draw the middle spawn area
 		Gizmos.color = Color.blue;
-		Gizmos.DrawWireCube(transform.position, new Vector3(width * 2 * middleSpawnFactor, height * 2 * middleSpawnFactor, 0));
+		Gizmos.DrawWireCube(Vector3.zero, new Vector3(width * 2 * middleSpawnFactor, height * 2 * middleSpawnFactor, 0));
 
 		//Draw the bounding box
 		Gizmos.color = Color.green;
-		Gizmos.DrawWireCube(transform.position, new Vector3(width, height, 0));
+		Gizmos.DrawWireCube(Vector3.zero, new Vector3(width, height, 0));
 
 		//The points are stored offset, so we move the drawing by half width and height
 		Matrix4x4 translationMatrix = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, 0));
@@ -77,28 +86,55 @@ public class RoadGenerator : MonoBehaviour
 		Gizmos.matrix = Matrix4x4.identity;
 	}
 
-	private void Update()
+	public IEnumerator Generate()
 	{
-		// if(Input.GetMouseButtonDown(0))
+		ClearRoads();
+
+		Debug.Log("Generating roads...");
+		SpreadStartingPoints();
+
+		Completed = GenerationState.Generating;
+		while(Completed == GenerationState.Generating)
 		{
 			TakeAStep();
+			yield return null;
+		}
+
+		FinishUp();
+	}
+
+	public void ClearRoads()
+	{
+		Points.Clear();
+		Completed = GenerationState.Empty;
+	}
+
+	private void SpreadStartingPoints()
+	{
+		for(int i = 0; i < initialStartPoints; i++)
+		{
+			float x = Random.Range(width * (0.5f - middleSpawnFactor), width * (0.5f + middleSpawnFactor));
+			float y = Random.Range(height * (0.5f - middleSpawnFactor), height * (0.5f + middleSpawnFactor));
+			Points.Add(new Point(this, x, y));
 		}
 	}
 
 	private void TakeAStep()
 	{
-		if (!_completed)
+		Debug.Log("Steppy! :)");
+		int pointsCount = Points.Count;
+		for(int i = 0; i < pointsCount; i++)
 		{
-			for(int i = 0; i < Points.Count; i++)
+			Point p = Points[i];
+			if (p.Head)
 			{
-				Point p = Points[i];
-				if (p.Head)
-				{
-					Points.AddRange(p.Step());
-				}
+				Points.AddRange(p.Step());
 			}
+		}
 
-			_completed = CheckDone();
+		if (CheckDone())
+		{
+			Completed = GenerationState.Finished;
 		}
 	}
 
@@ -117,6 +153,8 @@ public class RoadGenerator : MonoBehaviour
 
 	private void FinishUp()
 	{
+		Debug.Log("Done!");
+
 		//make directional links double-sided
 		for(int i = 0; i < Points.Count - 1; i++)
 		{
