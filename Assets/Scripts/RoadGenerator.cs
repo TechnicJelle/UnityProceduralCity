@@ -102,6 +102,19 @@ public class RoadGenerator : MonoBehaviour
 		}
 	}
 
+	private bool CheckDone()
+	{
+		foreach(Point p in Points)
+		{
+			if (p.Head)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	private void FinishUp()
 	{
 		//make directional links double-sided
@@ -127,20 +140,5 @@ public class RoadGenerator : MonoBehaviour
 				}
 			}
 		}
-	}
-
-	private bool CheckDone()
-	{
-		foreach(Point p in Points)
-		{
-			if (p.Head)
-			{
-				return false;
-			}
-		}
-
-		FinishUp();
-
-		return true;
 	}
 }
