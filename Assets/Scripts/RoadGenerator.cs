@@ -17,6 +17,9 @@ public class RoadGenerator : MonoBehaviour
 	private float middleSpawnFactor = 0.5f;
 
 	[SerializeField]
+	private int initialStartPoints = 4;
+
+	[SerializeField]
 	public float stepSize = 50.0f;
 
 	[SerializeField] [Range(0.0f, Mathf.PI)]
@@ -24,9 +27,6 @@ public class RoadGenerator : MonoBehaviour
 
 	[SerializeField] [Range(0.0f, 1.0f)]
 	public float newRoadChance = 0.7f;
-
-	[SerializeField]
-	private int initialStartPoints = 4;
 
 	[SerializeField]
 	private GameObject roadPrefab;

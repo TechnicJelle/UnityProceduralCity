@@ -458,10 +458,10 @@ MonoBehaviour:
   width: 10
   height: 10
   middleSpawnFactor: 0.25
+  initialStartPoints: 4
   stepSize: 1
   maxRotationAmountRadians: 0.4
   newRoadChance: 0.7
-  initialStartPoints: 4
   roadPrefab: {fileID: 0}
 --- !u!4 &1567894975
 Transform:
