@@ -23,13 +23,15 @@ public class Point
 		_startingPoint = true;
 	}
 
-	private Point(RoadGenerator roadGenerator, Vector2 newPos, Vector2 newDir, Point previous)
+	private Point(RoadGenerator roadGenerator, Vector2 newPos,
+		Vector2 newDir, Point previous)
 	{
 		_roadGenerator = roadGenerator;
 
 		_pos = newPos;
 		_dir = newDir;
-		if (_pos.x < 0.0f || _pos.x > _roadGenerator.width || _pos.y < 0.0f || _pos.y > _roadGenerator.height) Head = false;
+		if (_pos.x < 0.0f || _pos.x > _roadGenerator.width ||
+		    _pos.y < 0.0f || _pos.y > _roadGenerator.height) Head = false;
 		Connections.Add(previous);
 		_splitChance = previous._splitChance + roadGenerator.newRoadChance;
 	}
@@ -107,7 +109,9 @@ public class Point
 		}
 		if (intersectionPoint == null)
 		{
-			Vector2 newDir = Vector2Rotate(stepDir, Random.Range(-_roadGenerator.maxRotationAmountRadians, _roadGenerator.maxRotationAmountRadians));
+			Vector2 newDir = Vector2Rotate(stepDir,
+				Random.Range(-_roadGenerator.maxRotationAmountRadians,
+					_roadGenerator.maxRotationAmountRadians));
 			return new Point(_roadGenerator, newPos, newDir, this);
 		}
 
@@ -130,7 +134,9 @@ public class Point
 
 	}
 
-	private static Vector2? Intersect3(Vector2 lineR1Start, Vector2 lineR1End, Vector2 lineR2Start, Vector2 lineR2End)
+	private static Vector2? Intersect3(
+		Vector2 lineR1Start, Vector2 lineR1End,
+		Vector2 lineR2Start, Vector2 lineR2End)
 	{
 		//Adapted from https://stackoverflow.com/a/1968345/8109619
 		float p0X = lineR1Start.x;
