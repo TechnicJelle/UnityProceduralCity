@@ -101,6 +101,8 @@ public class RoadGenerator : MonoBehaviour
 		}
 
 		FinishUp();
+
+		Debug.Log("Road generation finished!");
 	}
 
 	public void ClearRoads()
@@ -121,7 +123,6 @@ public class RoadGenerator : MonoBehaviour
 
 	private void TakeAStep()
 	{
-		Debug.Log("Steppy! :)");
 		int pointsCount = Points.Count;
 		for(int i = 0; i < pointsCount; i++)
 		{
