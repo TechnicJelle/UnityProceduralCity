@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,6 +9,7 @@ namespace Editor
 	public class RoadGeneratorEditor : UnityEditor.Editor
 	{
 		private RoadGenerator _target;
+		private IEnumerator _generationCoroutine;
 
 		public override void OnInspectorGUI()
 		{
@@ -20,12 +22,21 @@ namespace Editor
 			if (GUILayout.Button("Clear Roads"))
 			{
 				_target.ClearRoads();
+				SceneView.RepaintAll();
+				Repaint();
 			}
 
 			// Draw a button to generate the road
 			if (GUILayout.Button("Generate Roads"))
 			{
-				_target.StartCoroutine(_target.Generate());
+				_generationCoroutine = _target.Generate();
+				_generationCoroutine.MoveNext();
+			}
+			if (_target.Completed == RoadGenerator.GenerationState.Generating)
+			{
+				_generationCoroutine.MoveNext();
+				SceneView.RepaintAll();
+				Repaint();
 			}
 
 			// Draw status indicator for Completed
