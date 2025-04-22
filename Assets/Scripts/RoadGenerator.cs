@@ -96,8 +96,8 @@ public class RoadGenerator : MonoBehaviour
 		Completed = GenerationState.Generating;
 		while(Completed == GenerationState.Generating)
 		{
-			TakeAStep();
 			yield return null;
+			TakeAStep();
 		}
 
 		FinishUp();
