@@ -19,7 +19,8 @@ public class Point
 		_roadGenerator = roadGenerator;
 
 		_pos = new Vector2(x, y);
-		_dir = Random.insideUnitCircle.normalized;
+		float angle = _roadGenerator.RandomRange(0, Mathf.PI*2);
+		_dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
 		_splitChance = 0.0f;
 		_startingPoint = true;
 	}
@@ -39,8 +40,10 @@ public class Point
 
 	public void Render()
 	{
-		foreach(Point c in Connections)
+		int connectionCount = Connections.Count;
+		for(int i = 0; i < connectionCount; i++)
 		{
+			Point c = Connections[i];
 			//Arrow
 			if (_startingPoint)
 			{
@@ -82,9 +85,9 @@ public class Point
 		newPoints.Add(alwaysNewPoint);
 
 		//maybe we can split off?
-		if (Random.value > _splitChance) return newPoints;
+		if (_roadGenerator.RandomRange(0, 1) > _splitChance) return newPoints;
 
-		Vector2 newDir = Random.value < 0.5f
+		Vector2 newDir = _roadGenerator.RandomRange(0, 1) < 0.5f
 			? Vector2Rotate(_dir, Mathf.PI / 2f)
 			: Vector2Rotate(_dir, -Mathf.PI / 2f);
 		Point? maybeNewPoint = GenerateNewSteppy(newDir);
@@ -115,7 +118,7 @@ public class Point
 		if (intersectionPoint == null)
 		{
 			Vector2 newDir = Vector2Rotate(stepDir,
-				Random.Range(-_roadGenerator.maxRotationAmountRadians,
+				_roadGenerator.RandomRange(-_roadGenerator.maxRotationAmountRadians,
 					_roadGenerator.maxRotationAmountRadians));
 			return new Point(_roadGenerator, newPos, newDir, this);
 		}

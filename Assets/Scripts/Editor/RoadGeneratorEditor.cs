@@ -1,5 +1,6 @@
+using JetBrains.Annotations;
 using System;
-using System.Collections;
+using System.Threading;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ namespace Editor
 	public class RoadGeneratorEditor : UnityEditor.Editor
 	{
 		private RoadGenerator _target;
-		private IEnumerator _generationCoroutine;
+		[CanBeNull] private Thread _generation;
 
 		public override void OnInspectorGUI()
 		{
@@ -21,20 +22,24 @@ namespace Editor
 			// Draw a button to clear the roads
 			if (GUILayout.Button("Clear Roads"))
 			{
+				_generation?.Abort();
+				_generation = null;
 				_target.ClearRoads();
 				SceneView.RepaintAll();
 				Repaint();
 			}
 
 			// Draw a button to generate the road
+			GUI.enabled = _target.Completed != RoadGenerator.GenerationState.Generating;
 			if (GUILayout.Button("Generate Roads"))
 			{
-				_generationCoroutine = _target.Generate();
-				_generationCoroutine.MoveNext();
+				_generation = new Thread(() => _target.Generate());
+				_generation.Start();
 			}
-			if (_target.Completed == RoadGenerator.GenerationState.Generating)
+			GUI.enabled = true;
+
+			if (_generation is {IsAlive: true})
 			{
-				_generationCoroutine.MoveNext();
 				SceneView.RepaintAll();
 				Repaint();
 			}

@@ -1,9 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Matrix4x4 = UnityEngine.Matrix4x4;
-using Random = UnityEngine.Random;
-using Vector3 = UnityEngine.Vector3;
 
 public class RoadGenerator : MonoBehaviour
 {
@@ -46,6 +42,8 @@ public class RoadGenerator : MonoBehaviour
 
 	public readonly List<Point> Points = new();
 
+	private readonly System.Random _rng = new();
+
 	public enum GenerationState
 	{
 		Empty,
@@ -83,8 +81,10 @@ public class RoadGenerator : MonoBehaviour
 		Gizmos.matrix *= translationMatrix;
 
 		// Draw the points
-		foreach(Point p in Points)
+		int pointCount = Points.Count;
+		for(int i = 0; i < pointCount; i++)
 		{
+			Point p = Points[i];
 			p.Render();
 		}
 
@@ -92,7 +92,7 @@ public class RoadGenerator : MonoBehaviour
 		Gizmos.matrix = Matrix4x4.identity;
 	}
 
-	public IEnumerator Generate()
+	public void Generate()
 	{
 		Debug.Log("Generating roads...");
 
@@ -102,7 +102,6 @@ public class RoadGenerator : MonoBehaviour
 		Completed = GenerationState.Generating;
 		while(Completed == GenerationState.Generating)
 		{
-			yield return null;
 			TakeAStep();
 		}
 
@@ -121,8 +120,8 @@ public class RoadGenerator : MonoBehaviour
 	{
 		for(int i = 0; i < initialStartPoints; i++)
 		{
-			float x = Random.Range(width * (0.5f - middleSpawnFactor), width * (0.5f + middleSpawnFactor));
-			float y = Random.Range(height * (0.5f - middleSpawnFactor), height * (0.5f + middleSpawnFactor));
+			float x = RandomRange(width * (0.5f - middleSpawnFactor), width * (0.5f + middleSpawnFactor));
+			float y = RandomRange(height * (0.5f - middleSpawnFactor), height * (0.5f + middleSpawnFactor));
 			Points.Add(new Point(this, x, y));
 		}
 	}
@@ -185,5 +184,10 @@ public class RoadGenerator : MonoBehaviour
 				}
 			}
 		}
+	}
+
+	public float RandomRange(float minNumber, float maxNumber)
+	{
+		return (float)_rng.NextDouble() * (maxNumber - minNumber) + minNumber;
 	}
 }
