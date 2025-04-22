@@ -1,5 +1,6 @@
 #nullable enable
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Point
@@ -40,6 +41,7 @@ public class Point
 	{
 		foreach(Point c in Connections)
 		{
+			//Arrow
 			if (_startingPoint)
 			{
 				Gizmos.color = Color.grey;
@@ -48,8 +50,11 @@ public class Point
 			{
 				Gizmos.color = Head ? Color.red : Color.yellow;
 			}
-			Gizmos.DrawSphere(_pos, _startingPoint ? 0.3f : 0.1f);
-			Gizmos.DrawLine(_pos, c._pos); //TODO: Arrow
+			Arrow(_pos, c._pos, _roadGenerator.arrowHeadSize, _roadGenerator.arrowHeadAngle * Mathf.Deg2Rad);
+
+			//Circle
+			Gizmos.color = Gizmos.color.WithAlpha(0.4f);
+			Gizmos.DrawSphere(_pos, _startingPoint ? 0.2f : 0.1f);
 		}
 	}
 	private bool CheckIntersectWithAnyConnections(Vector2 currentPos, Vector2 newPos)
@@ -164,7 +169,21 @@ public class Point
 		float iX = p0X + t * s1X;
 		float iY = p0Y + t * s1Y;
 		return new Vector2(iX, iY);
+	}
 
+	private static void Arrow(Vector2 start, Vector2 end, float headSize, float headAngle)
+	{
+		Vector2 ray = end - start;
+		end = start + ray / 2;
+		Gizmos.DrawLine(start, end);
+		Matrix4x4 pushMatrix = Gizmos.matrix;
+		Gizmos.matrix *= Matrix4x4.Translate(new Vector2(end.x, end.y));
+		float angle = Mathf.Atan2(start.x - end.x, end.y - start.y);
+		Gizmos.matrix *= Matrix4x4.Rotate(Quaternion.Euler(0, 0, angle * Mathf.Rad2Deg));
+		Vector2 headSizeVector = new(0, -headSize);
+		Gizmos.DrawLine(Vector2.zero, Vector2Rotate(headSizeVector, -headAngle));
+		Gizmos.DrawLine(Vector2.zero, Vector2Rotate(headSizeVector, headAngle));
+		Gizmos.matrix = pushMatrix;
 	}
 
 	/// <summary>

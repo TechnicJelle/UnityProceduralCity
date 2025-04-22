@@ -31,6 +31,12 @@ public class RoadGenerator : MonoBehaviour
 	[SerializeField] [Range(0.0f, 1.0f)]
 	public float newRoadChance = 0.7f;
 
+	[SerializeField] [Range(0.0f, 0.5f)]
+	public float arrowHeadSize = 0.2f;
+
+	[SerializeField] [Range(0.0f, 90.0f)]
+	public float arrowHeadAngle = 45.0f;
+
 	[SerializeField]
 	private GameObject roadPrefab;
 
@@ -154,7 +160,7 @@ public class RoadGenerator : MonoBehaviour
 
 	private void FinishUp()
 	{
-		Debug.Log("Done!");
+		Debug.Log("Finishing up...");
 
 		//make directional links double-sided
 		for(int i = 0; i < Points.Count - 1; i++)

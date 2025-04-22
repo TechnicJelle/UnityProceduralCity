@@ -462,6 +462,8 @@ MonoBehaviour:
   stepSize: 1
   maxRotationAmountRadians: 0.4
   newRoadChance: 0.7
+  arrowHeadSize: 0.125
+  arrowHeadAngle: 30
   roadPrefab: {fileID: 0}
 --- !u!4 &1567894975
 Transform:
