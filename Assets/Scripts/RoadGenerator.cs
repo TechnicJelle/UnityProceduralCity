@@ -84,8 +84,15 @@ public class RoadGenerator : MonoBehaviour
 		int pointCount = Points.Count;
 		for(int i = 0; i < pointCount; i++)
 		{
-			Point p = Points[i];
-			p.Render();
+			try
+			{
+				Point p = Points[i];
+				p.Render();
+			}
+			catch(ArgumentOutOfRangeException)
+			{
+				//we don't mind if the rendering is wrong/behind for a moment
+			}
 		}
 
 		// Reset the matrix to identity to avoid affecting other gizmos
