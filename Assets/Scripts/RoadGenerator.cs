@@ -88,9 +88,9 @@ public class RoadGenerator : MonoBehaviour
 
 	public IEnumerator Generate()
 	{
-		ClearRoads();
-
 		Debug.Log("Generating roads...");
+
+		ClearRoads();
 		SpreadStartingPoints();
 
 		Completed = GenerationState.Generating;
