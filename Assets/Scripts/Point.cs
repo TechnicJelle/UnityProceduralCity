@@ -102,7 +102,7 @@ public class Point
 			Handles.matrix = Gizmos.matrix;
 			float straightness = CalculateStraightness();
 			GUIStyle style = new() {normal = {textColor = straightness < _roadGenerator.acceptableStraightsMin || straightness > _roadGenerator.acceptableStraightsMax ? Color.red : Color.white}};
-			Handles.Label(Pos, "i:" + pointsIndex + " Straightness: " + straightness, style);
+			Handles.Label(Pos, "i:" + pointsIndex + "\nStraightness: " + straightness, style);
 			Handles.matrix = pushMatrix;
 		}
 
