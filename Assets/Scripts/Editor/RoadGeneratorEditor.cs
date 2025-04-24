@@ -31,6 +31,14 @@ namespace Editor
 			GUIStyle labelStyle = EditorStyles.boldLabel;
 			labelStyle.margin = new RectOffset {top = 10};
 
+			GUILayout.Label("Global Options", labelStyle);
+			GUILayout.BeginHorizontal();
+			_target.automaticSeed = EditorGUILayout.Toggle(UppercaseWords(nameof(_target.automaticSeed)), _target.automaticSeed);
+			GUI.enabled = !_target.automaticSeed;
+			_target.seed = EditorGUILayout.IntField(UppercaseWords(nameof(_target.seed)), _target.seed);
+			if (GUILayout.Button("Reset")) _target.ResetRng();
+			GUI.enabled = true;
+			GUILayout.EndHorizontal();
 
 			GUILayout.Label("Generation Options", labelStyle);
 			_target.width = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.width)), _target.width);

@@ -1,11 +1,20 @@
+using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = System.Random;
 
 public class RoadGenerator : MonoBehaviour
 {
 
 #region Constants
+
+	// Global
+	[SerializeField]
+	public bool automaticSeed = true;
+
+	[SerializeField]
+	public int seed = 0;
 
 	// Generation
 	[SerializeField]
@@ -64,14 +73,20 @@ public class RoadGenerator : MonoBehaviour
 
 	public readonly List<Point> Points = new();
 
-	private readonly System.Random _rng = new();
+	[CanBeNull]
+	private Random _rng;
 
 #endregion
 
 	public bool HasPoints() => Points.Count > 0;
 
+	public void ResetRng() => _rng = null;
+
 	public float RandomRange(float minNumber, float maxNumber)
-		=> (float)_rng.NextDouble() * (maxNumber - minNumber) + minNumber;
+	{
+		_rng ??= automaticSeed ? new Random() : new Random(seed);
+		return (float)_rng.NextDouble() * (maxNumber - minNumber) + minNumber;
+	}
 
 	private void OnDrawGizmos()
 	{
@@ -111,6 +126,7 @@ public class RoadGenerator : MonoBehaviour
 
 	public void ClearRoads()
 	{
+		ResetRng();
 		Points.Clear();
 	}
 
