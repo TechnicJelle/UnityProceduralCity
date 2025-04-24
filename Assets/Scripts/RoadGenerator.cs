@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,62 +7,71 @@ public class RoadGenerator : MonoBehaviour
 
 #region Constants
 
+	// Generation
 	[SerializeField]
 	public float width = 1000.0f;
 
 	[SerializeField]
 	public float height = 1000.0f;
 
-	[SerializeField] [Range(0.0f, 0.5f)]
-	private float middleSpawnFactor = 0.5f;
+	// Spreading
+	[SerializeField]
+	public float middleSpawnFactor = 0.5f;
 
 	[SerializeField]
-	private int initialStartPoints = 4;
+	public int initialStartPoints = 4;
 
+	// Stepping
 	[SerializeField]
 	public float stepSize = 50.0f;
 
-	[SerializeField] [Range(0.0f, Mathf.PI)]
+	[SerializeField]
 	public float maxRotationAmountRadians = 0.4f;
 
-	[SerializeField] [Range(0.0f, 1.0f)]
+	[SerializeField]
 	public float newRoadChance = 0.7f;
 
-	[SerializeField] [Range(0.0f, 0.5f)]
+	// Merging
+	[SerializeField]
+	public float mergeDistance = 0.5f;
+
+	[SerializeField]
+	public float acceptableStraightsMin = 20.0f;
+
+	[SerializeField]
+	public float acceptableStraightsMax = 300.0f;
+
+	// Debug Drawing
+	[SerializeField]
 	public float arrowHeadSize = 0.2f;
 
-	[SerializeField] [Range(0.0f, 90.0f)]
+	[SerializeField]
 	public float arrowHeadAngle = 45.0f;
 
 	[SerializeField]
-	private GameObject roadPrefab;
+	public bool showPointsIndex = false;
+
+	[SerializeField]
+	public bool showStraightness = false;
+
+	// Prefab
+	[SerializeField]
+	public GameObject roadPrefab;
 
 #endregion
 
-#region Private Fields
+#region Fields
 
 	public readonly List<Point> Points = new();
 
 	private readonly System.Random _rng = new();
 
-	public enum GenerationState
-	{
-		Empty,
-		Generating,
-		Finished,
-	}
-
-	public GenerationState Completed { get; private set; } = GenerationState.Empty;
-
 #endregion
 
-	private void OnValidate()
-	{
-		if (Points.Count == 0)
-		{
-			Completed = GenerationState.Empty;
-		}
-	}
+	public bool HasPoints() => Points.Count > 0;
+
+	public float RandomRange(float minNumber, float maxNumber)
+		=> (float)_rng.NextDouble() * (maxNumber - minNumber) + minNumber;
 
 	private void OnDrawGizmos()
 	{
@@ -87,7 +97,7 @@ public class RoadGenerator : MonoBehaviour
 			try
 			{
 				Point p = Points[i];
-				p.Render();
+				p.Render(i);
 			}
 			catch(ArgumentOutOfRangeException)
 			{
@@ -99,37 +109,26 @@ public class RoadGenerator : MonoBehaviour
 		Gizmos.matrix = Matrix4x4.identity;
 	}
 
-	public void Generate()
-	{
-		Debug.Log("Generating roads...");
-
-		ClearRoads();
-		SpreadStartingPoints();
-
-		Completed = GenerationState.Generating;
-		while(Completed == GenerationState.Generating)
-		{
-			TakeAStep();
-		}
-
-		FinishUp();
-
-		Debug.Log("Road generation finished!");
-	}
-
 	public void ClearRoads()
 	{
 		Points.Clear();
-		Completed = GenerationState.Empty;
 	}
 
-	private void SpreadStartingPoints()
+	public void SpreadStartingPoints()
 	{
 		for(int i = 0; i < initialStartPoints; i++)
 		{
 			float x = RandomRange(width * (0.5f - middleSpawnFactor), width * (0.5f + middleSpawnFactor));
 			float y = RandomRange(height * (0.5f - middleSpawnFactor), height * (0.5f + middleSpawnFactor));
 			Points.Add(new Point(this, x, y));
+		}
+	}
+
+	public void DoStepping()
+	{
+		while(!CheckDoneStepping())
+		{
+			TakeAStep();
 		}
 	}
 
@@ -144,14 +143,9 @@ public class RoadGenerator : MonoBehaviour
 				Points.AddRange(p.Step());
 			}
 		}
-
-		if (CheckDone())
-		{
-			Completed = GenerationState.Finished;
-		}
 	}
 
-	private bool CheckDone()
+	private bool CheckDoneStepping()
 	{
 		foreach(Point p in Points)
 		{
@@ -164,11 +158,9 @@ public class RoadGenerator : MonoBehaviour
 		return true;
 	}
 
-	private void FinishUp()
+	///make directional links double-sided
+	public void DoubleLink()
 	{
-		Debug.Log("Finishing up...");
-
-		//make directional links double-sided
 		for(int i = 0; i < Points.Count - 1; i++)
 		{
 			for(int j = i + 1; j < Points.Count; j++)
@@ -193,8 +185,86 @@ public class RoadGenerator : MonoBehaviour
 		}
 	}
 
-	public float RandomRange(float minNumber, float maxNumber)
+	/// <param name="index">the index in the Points list to take out</param>
+	private void TakeOutPoint(int index)
 	{
-		return (float)_rng.NextDouble() * (maxNumber - minNumber) + minNumber;
+		Point removedPoint = Points[index];
+		for(int i = removedPoint.Connections.Count - 1; i >= 0; i--)
+		{
+			Point connection = removedPoint.Connections[i];
+			connection.Connections.Remove(removedPoint);
+			//add all of the removedConnections' other connections to the current point's connections
+			for(int j = connection.Connections.Count - 1; j >= 0; j--)
+			{
+				Point connectionOfConnection = connection.Connections[j];
+				if (connectionOfConnection != removedPoint && !removedPoint.Connections.Contains(connectionOfConnection))
+				{
+					removedPoint.Connections.Add(connectionOfConnection);
+				}
+			}
+		}
+
+		Points.RemoveAt(index);
+		Debug.Log("Took out point " + index);
+	}
+
+	public void MergeByDistance()
+	{
+		for(int i = 0; i < Points.Count - 1; i++)
+		{
+			for(int j = i + 1; j < Points.Count; j++)
+			{
+				Point p1 = Points[i];
+				Point p2 = Points[j];
+				float distance = Vector2.Distance(p1.Pos, p2.Pos);
+				if (distance < mergeDistance)
+				{
+					//remove the point with the worst straightness
+					float straightness1 = p1.CalculateStraightness();
+					float straightness2 = p2.CalculateStraightness();
+					TakeOutPoint(straightness1 < straightness2 ? i : j);
+				}
+			}
+		}
+	}
+
+	public void MergeUnacceptableStraights()
+	{
+		for(int i = Points.Count - 1; i >= 0; i--)
+		{
+			Point p = Points[i];
+			float straightness = p.CalculateStraightness();
+			bool shouldBeRemoved = straightness < acceptableStraightsMin || straightness > acceptableStraightsMax;
+			if (shouldBeRemoved)
+			{
+				TakeOutPoint(i);
+			}
+		}
+	}
+
+	///check if all points' connections are actually in the points list
+	public void VerifyConnections()
+	{
+		bool allGood = true;
+		for(int i = 0; i < Points.Count; i++)
+		{
+			Point p = Points[i];
+			for(int j = 0; j < p.Connections.Count; j++)
+			{
+				Point c = p.Connections[j];
+				if (Points.Contains(c)) continue;
+
+				Debug.LogError($"Point {i} has a connection to a point that is not in the list: {j}");
+				allGood = false;
+			}
+		}
+		if (allGood)
+		{
+			Debug.Log("All connections are valid");
+		}
+		else
+		{
+			Debug.LogError("Some connections are invalid");
+		}
 	}
 }

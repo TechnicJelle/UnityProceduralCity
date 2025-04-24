@@ -1,13 +1,14 @@
 #nullable enable
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 public class Point
 {
 	private readonly RoadGenerator _roadGenerator;
 
-	private readonly Vector2 _pos;
+	public Vector2 Pos;
 	private readonly Vector2 _dir;
 	public bool Head = true;
 	public readonly List<Point> Connections = new();
@@ -18,8 +19,8 @@ public class Point
 	{
 		_roadGenerator = roadGenerator;
 
-		_pos = new Vector2(x, y);
-		float angle = _roadGenerator.RandomRange(0, Mathf.PI*2);
+		Pos = new Vector2(x, y);
+		float angle = _roadGenerator.RandomRange(0, Mathf.PI * 2);
 		_dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
 		_splitChance = 0.0f;
 		_startingPoint = true;
@@ -30,41 +31,97 @@ public class Point
 	{
 		_roadGenerator = roadGenerator;
 
-		_pos = newPos;
+		Pos = newPos;
 		_dir = newDir;
-		if (_pos.x < 0.0f || _pos.x > _roadGenerator.width ||
-		    _pos.y < 0.0f || _pos.y > _roadGenerator.height) Head = false;
+		if (Pos.x < 0.0f || Pos.x > _roadGenerator.width ||
+		    Pos.y < 0.0f || Pos.y > _roadGenerator.height) Head = false;
 		Connections.Add(previous);
 		_splitChance = previous._splitChance + roadGenerator.newRoadChance;
 	}
 
-	public void Render()
+	public float CalculateStraightness()
 	{
+		//compare all connections to eachother, and compare the angle between them
+		float minStraightness = float.MaxValue;
+		int connectionCount = Connections.Count;
+		for(int i = 0; i < connectionCount; i++)
+		{
+			for(int j = i + 1; j < connectionCount; j++)
+			{
+				float angle = Vector2.Angle(Connections[i].Pos - Pos, Connections[j].Pos - Pos);
+				if (angle < minStraightness) minStraightness = angle;
+			}
+		}
+
+		if (minStraightness > 360) minStraightness = 180;
+
+		return minStraightness;
+	}
+
+	public void Render(int pointsIndex)
+	{
+		//Colour
+		if (_startingPoint)
+		{
+			Gizmos.color = Color.grey;
+		}
+		else
+		{
+			Gizmos.color = Head ? Color.red : Color.yellow;
+		}
+
+		//Circle
+		Gizmos.color = Gizmos.color.WithAlpha(0.3f);
+		Gizmos.DrawSphere(Pos, _startingPoint ? 0.2f : 0.1f);
+
+		//Index label
+		if (_roadGenerator is {showPointsIndex: true, showStraightness: false})
+		{
+			Matrix4x4 pushMatrix = Handles.matrix;
+			Handles.matrix = Gizmos.matrix;
+			GUIStyle style = new() {normal = {textColor = Color.white}};
+			Handles.Label(Pos, "i:" + pointsIndex, style);
+			Handles.matrix = pushMatrix;
+		}
+
+		//Straightness label
+		if (_roadGenerator is {showStraightness: true, showPointsIndex: false})
+		{
+			Matrix4x4 pushMatrix = Handles.matrix;
+			Handles.matrix = Gizmos.matrix;
+			float straightness = CalculateStraightness();
+			GUIStyle style = new() {normal = {textColor = straightness < _roadGenerator.acceptableStraightsMin || straightness > _roadGenerator.acceptableStraightsMax ? Color.red : Color.white}};
+			Handles.Label(Pos, "Straightness: " + straightness, style);
+			Handles.matrix = pushMatrix;
+		}
+
+		//Both labels
+		if (_roadGenerator is {showPointsIndex: true, showStraightness: true})
+		{
+			Matrix4x4 pushMatrix = Handles.matrix;
+			Handles.matrix = Gizmos.matrix;
+			float straightness = CalculateStraightness();
+			GUIStyle style = new() {normal = {textColor = straightness < _roadGenerator.acceptableStraightsMin || straightness > _roadGenerator.acceptableStraightsMax ? Color.red : Color.white}};
+			Handles.Label(Pos, "i:" + pointsIndex + " Straightness: " + straightness, style);
+			Handles.matrix = pushMatrix;
+		}
+
+		//Arrows
 		int connectionCount = Connections.Count;
 		for(int i = 0; i < connectionCount; i++)
 		{
 			Point c = Connections[i];
-			//Arrow
-			if (_startingPoint)
-			{
-				Gizmos.color = Color.grey;
-			}
-			else
-			{
-				Gizmos.color = Head ? Color.red : Color.yellow;
-			}
-			Arrow(_pos, c._pos, _roadGenerator.arrowHeadSize, _roadGenerator.arrowHeadAngle * Mathf.Deg2Rad);
 
-			//Circle
-			Gizmos.color = Gizmos.color.WithAlpha(0.4f);
-			Gizmos.DrawSphere(_pos, _startingPoint ? 0.2f : 0.1f);
+			Gizmos.color = Gizmos.color.WithAlpha(1.0f);
+			Arrow(Pos, c.Pos, _roadGenerator.arrowHeadSize, _roadGenerator.arrowHeadAngle * Mathf.Deg2Rad);
 		}
 	}
+
 	private bool CheckIntersectWithAnyConnections(Vector2 currentPos, Vector2 newPos)
 	{
 		foreach(Point c in Connections)
 		{
-			if (Intersect3(c._pos, _pos, currentPos, newPos) != null)
+			if (Intersect3(c.Pos, Pos, currentPos, newPos) != null)
 			{
 				return true;
 			}
@@ -104,12 +161,12 @@ public class Point
 	/// Returns null when not made a new steppy, but connected to another steppy instead
 	private Point? GenerateNewSteppy(Vector2 stepDir)
 	{
-		Vector2 newPos = _pos + stepDir * _roadGenerator.stepSize;
+		Vector2 newPos = Pos + stepDir * _roadGenerator.stepSize;
 		Point? intersectionPoint = null;
 		foreach(Point? p in _roadGenerator.Points)
 		{
 			if (p == this) continue;
-			if (p.CheckIntersectWithAnyConnections(_pos, newPos))
+			if (p.CheckIntersectWithAnyConnections(Pos, newPos))
 			{
 				intersectionPoint = p;
 				break;
@@ -131,7 +188,7 @@ public class Point
 		//find the closest point to this point
 		foreach(Point pp in potentialConnectionPoints)
 		{
-			float dist = Vector2.Distance(_pos, pp._pos);
+			float dist = Vector2.Distance(Pos, pp.Pos);
 			if (dist >= smallestDistance) continue;
 			smallestDistance = dist;
 			closestPoint = pp;
