@@ -202,7 +202,7 @@ public class RoadGenerator : MonoBehaviour
 	}
 
 	/// <param name="index">the index in the Points list to take out</param>
-	private void TakeOutPoint(int index)
+	public void TakeOutPoint(int index)
 	{
 		Point removedPoint = Points[index];
 		for(int i = removedPoint.Connections.Count - 1; i >= 0; i--)

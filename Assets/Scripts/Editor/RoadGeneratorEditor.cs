@@ -12,6 +12,8 @@ namespace Editor
 		private RoadGenerator _target;
 		[CanBeNull] private Thread _thread;
 
+		private int _takeOutPoint = -1;
+
 		public override void OnInspectorGUI()
 		{
 			_target = (RoadGenerator)target;
@@ -113,6 +115,19 @@ namespace Editor
 			}
 			GUI.enabled = true;
 
+
+			GUILayout.Label("Take Out Options", labelStyle);
+			GUI.enabled = _target.HasPoints() && _thread is not {IsAlive: true};
+			_takeOutPoint = Mathf.Clamp(EditorGUILayout.IntField(UppercaseWords(nameof(_takeOutPoint)), _takeOutPoint), 0, _target.Points.Count - 1);
+			if (GUILayout.Button("Take out point"))
+			{
+				_thread = new Thread(() => _target.TakeOutPoint(_takeOutPoint));
+				_thread.Start();
+			}
+			GUI.enabled = true;
+
+
+			GUILayout.Label("Verification Options", labelStyle);
 			GUI.enabled = _target.HasPoints() && _thread is not {IsAlive: true};
 			if (GUILayout.Button(UppercaseWords(nameof(_target.VerifyConnections))))
 			{
@@ -149,6 +164,7 @@ namespace Editor
 
 		private static string UppercaseWords(string input)
 		{
+			input = input.Trim('_');
 			List<string> words = new();
 
 			//split the string into words, by uppercase letters
