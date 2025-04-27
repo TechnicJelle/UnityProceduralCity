@@ -117,18 +117,6 @@ public class Point
 		}
 	}
 
-	private bool CheckIntersectWithAnyConnections(Vector2 currentPos, Vector2 newPos)
-	{
-		foreach(Point c in Connections)
-		{
-			if (Intersect3(c.Pos, Pos, currentPos, newPos) != null)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
 	public IEnumerable<Point> Step()
 	{
 		Head = false;
@@ -197,6 +185,18 @@ public class Point
 
 		return null;
 
+	}
+
+	private bool CheckIntersectWithAnyConnections(Vector2 currentPos, Vector2 newPos)
+	{
+		foreach(Point c in Connections)
+		{
+			if (Intersect3(c.Pos, Pos, currentPos, newPos) != null)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static Vector2? Intersect3(
