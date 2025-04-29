@@ -50,7 +50,7 @@ namespace Editor
 			_target.height = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.height)), _target.height);
 
 			GUI.enabled = _target.HasPoints();
-			if (GUILayout.Button("Clear Roads"))
+			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearRoads))))
 			{
 				_thread?.Abort();
 				_thread = null;
@@ -66,7 +66,7 @@ namespace Editor
 			_target.initialStartPoints = EditorGUILayout.IntField(UppercaseWords(nameof(_target.initialStartPoints)), _target.initialStartPoints);
 
 			GUI.enabled = _thread is not {IsAlive: true};
-			if (GUILayout.Button("Spread starting points"))
+			if (GUILayout.Button(UppercaseWords(nameof(_target.SpreadStartingPoints))))
 			{
 				_thread = new Thread(() => _target.SpreadStartingPoints());
 				_thread.Start();
@@ -88,7 +88,7 @@ namespace Editor
 			GUI.enabled = true;
 
 			GUI.enabled = _target.HasPoints() && _thread is not {IsAlive: true};
-			if (GUILayout.Button("Double link"))
+			if (GUILayout.Button(UppercaseWords(nameof(_target.DoubleLink))))
 			{
 				_thread = new Thread(() => _target.DoubleLink());
 				_thread.Start();
@@ -122,7 +122,7 @@ namespace Editor
 			GUILayout.Label("Take Out Options", labelStyle);
 			GUI.enabled = _target.HasPoints() && _thread is not {IsAlive: true};
 			_takeOutPoint = Mathf.Clamp(EditorGUILayout.IntField(UppercaseWords(nameof(_takeOutPoint)), _takeOutPoint), 0, _target.Points.Count - 1);
-			if (GUILayout.Button("Take out point"))
+			if (GUILayout.Button(UppercaseWords(nameof(_target.TakeOutPoint))))
 			{
 				_thread = new Thread(() => _target.TakeOutPoint(_takeOutPoint));
 				_thread.Start();
