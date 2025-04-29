@@ -12,7 +12,7 @@ namespace Editor
 		private RoadGenerator _target;
 		[CanBeNull] private Thread _thread;
 
-		private int _takeOutPoint = -1;
+		private int _takeOutPoint = 0;
 
 		public override void OnInspectorGUI()
 		{
