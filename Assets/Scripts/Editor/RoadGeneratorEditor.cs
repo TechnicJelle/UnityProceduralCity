@@ -37,7 +37,10 @@ namespace Editor
 			GUILayout.BeginHorizontal();
 			_target.automaticSeed = EditorGUILayout.Toggle(UppercaseWords(nameof(_target.automaticSeed)), _target.automaticSeed);
 			GUI.enabled = !_target.automaticSeed;
+			float labelWidth = EditorGUIUtility.labelWidth;
+			EditorGUIUtility.labelWidth = 42;
 			_target.seed = EditorGUILayout.IntField(UppercaseWords(nameof(_target.seed)), _target.seed);
+			EditorGUIUtility.labelWidth = labelWidth;
 			if (GUILayout.Button("Reset")) _target.ResetRng();
 			GUI.enabled = true;
 			GUILayout.EndHorizontal();
