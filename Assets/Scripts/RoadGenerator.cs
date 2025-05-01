@@ -7,7 +7,7 @@ using Random = System.Random;
 public class RoadGenerator : MonoBehaviour
 {
 
-#region Constants
+#region Options
 
 	// Global
 	[SerializeField]
@@ -16,12 +16,14 @@ public class RoadGenerator : MonoBehaviour
 	[SerializeField]
 	public int seed = 0;
 
+
 	// Generation
 	[SerializeField]
 	public float width = 1000.0f;
 
 	[SerializeField]
 	public float height = 1000.0f;
+
 
 	// Spreading
 	[SerializeField]
@@ -30,9 +32,10 @@ public class RoadGenerator : MonoBehaviour
 	[SerializeField]
 	public int initialStartPoints = 4;
 
+
 	// Stepping
 	[SerializeField]
-	public float stepSize = 50.0f;
+	public float stepDistance = 50.0f;
 
 	[SerializeField]
 	public float maxRotationAmountRadians = 0.4f;
@@ -40,38 +43,31 @@ public class RoadGenerator : MonoBehaviour
 	[SerializeField]
 	public float newRoadChance = 0.7f;
 
+
 	// Merging
 	[SerializeField]
 	public float mergeDistance = 0.5f;
 
-	[SerializeField]
-	public float acceptableStraightsMin = 20.0f;
-
-	[SerializeField]
-	public float acceptableStraightsMax = 300.0f;
 
 	// Debug Drawing
 	[SerializeField]
-	public float arrowHeadSize = 0.2f;
+	public bool showPointsSphere = true;
 
 	[SerializeField]
-	public float arrowHeadAngle = 45.0f;
+	public float sphereSizeDefault = 0.1f;
+
+	[SerializeField]
+	public float sphereSizeIncrease = 0.05f;
 
 	[SerializeField]
 	public bool showPointsIndex = false;
-
-	[SerializeField]
-	public bool showStraightness = false;
-
-	// Prefab
-	[SerializeField]
-	public GameObject roadPrefab;
 
 #endregion
 
 #region Fields
 
 	public readonly List<Point> Points = new();
+	public readonly List<Road> Roads = new();
 
 	[CanBeNull]
 	private Random _rng;
@@ -120,6 +116,21 @@ public class RoadGenerator : MonoBehaviour
 			}
 		}
 
+		// Draw the roads
+		int roadCount = Roads.Count;
+		for(int i = 0; i < roadCount; i++)
+		{
+			try
+			{
+				Road r = Roads[i];
+				r.Render();
+			}
+			catch(ArgumentOutOfRangeException)
+			{
+				//we don't mind if the rendering is wrong/behind for a moment
+			}
+		}
+
 		// Reset the matrix to identity to avoid affecting other gizmos
 		Gizmos.matrix = Matrix4x4.identity;
 	}
@@ -128,6 +139,7 @@ public class RoadGenerator : MonoBehaviour
 	{
 		ResetRng();
 		Points.Clear();
+		Roads.Clear();
 	}
 
 	public void SpreadStartingPoints()
@@ -154,15 +166,13 @@ public class RoadGenerator : MonoBehaviour
 		for(int i = 0; i < pointsCount; i++)
 		{
 			Point p = Points[i];
-			if (p.Head)
-			{
-				Points.AddRange(p.Step());
-			}
+			p.Step();
 		}
 	}
 
 	private bool CheckDoneStepping()
 	{
+		//is there any head? that means it's still going
 		foreach(Point p in Points)
 		{
 			if (p.Head)
@@ -174,88 +184,9 @@ public class RoadGenerator : MonoBehaviour
 		return true;
 	}
 
-	///make directional links double-sided
-	public void DoubleLink()
-	{
-		for(int i = 0; i < Points.Count - 1; i++)
-		{
-			for(int j = i + 1; j < Points.Count; j++)
-			{
-				Point p1 = Points[i];
-				Point p2 = Points[j];
-				if (p1.Connections.Contains(p2))
-				{
-					if (!p2.Connections.Contains(p1))
-					{
-						p2.Connections.Add(p1);
-					}
-				}
-				if (p2.Connections.Contains(p1))
-				{
-					if (!p1.Connections.Contains(p2))
-					{
-						p1.Connections.Add(p2);
-					}
-				}
-			}
-		}
-	}
-
-	/// <param name="index">the index in the Points list to take out</param>
-	public void TakeOutPoint(int index)
-	{
-		Point removedPoint = Points[index];
-		for(int i = removedPoint.Connections.Count - 1; i >= 0; i--)
-		{
-			Point connection = removedPoint.Connections[i];
-			connection.Connections.Remove(removedPoint);
-			//add all of the removedConnections' other connections to the current point's connections
-			for(int j = connection.Connections.Count - 1; j >= 0; j--)
-			{
-				Point connectionOfConnection = connection.Connections[j];
-				if (connectionOfConnection != removedPoint && !removedPoint.Connections.Contains(connectionOfConnection))
-				{
-					removedPoint.Connections.Add(connectionOfConnection);
-				}
-			}
-		}
-
-		Points.RemoveAt(index);
-		Debug.Log("Took out point " + index);
-	}
-
 	public void MergeByDistance()
 	{
-		for(int i = 0; i < Points.Count - 1; i++)
-		{
-			for(int j = i + 1; j < Points.Count; j++)
-			{
-				Point p1 = Points[i];
-				Point p2 = Points[j];
-				float distance = Vector2.Distance(p1.Pos, p2.Pos);
-				if (distance < mergeDistance)
-				{
-					//remove the point with the worst straightness
-					float straightness1 = p1.CalculateStraightness();
-					float straightness2 = p2.CalculateStraightness();
-					TakeOutPoint(straightness1 < straightness2 ? i : j);
-				}
-			}
-		}
-	}
-
-	public void MergeUnacceptableStraights()
-	{
-		for(int i = Points.Count - 1; i >= 0; i--)
-		{
-			Point p = Points[i];
-			float straightness = p.CalculateStraightness();
-			bool shouldBeRemoved = straightness < acceptableStraightsMin || straightness > acceptableStraightsMax;
-			if (shouldBeRemoved)
-			{
-				TakeOutPoint(i);
-			}
-		}
+		throw new NotImplementedException();
 	}
 
 	///check if all points' connections are actually in the points list
@@ -267,12 +198,21 @@ public class RoadGenerator : MonoBehaviour
 			Point p = Points[i];
 			for(int j = 0; j < p.Connections.Count; j++)
 			{
-				Point c = p.Connections[j];
-				if (Points.Contains(c)) continue;
+				Road r = p.Connections[j];
+				if (Points.Contains(r.P1) && Points.Contains(r.P2)) continue;
 
 				Debug.LogError($"Point {i} has a connection to a point that is not in the list: {j}");
 				allGood = false;
 			}
+		}
+		//check if all roads are in the points list
+		for(int i = 0; i < Roads.Count; i++)
+		{
+			Road r = Roads[i];
+			if (Points.Contains(r.P1) && Points.Contains(r.P2)) continue;
+
+			Debug.LogError($"Road {i} has a connection to a point that is not in the list");
+			allGood = false;
 		}
 		if (allGood)
 		{

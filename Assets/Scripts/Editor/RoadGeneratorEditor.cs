@@ -12,8 +12,6 @@ namespace Editor
 		private RoadGenerator _target;
 		[CanBeNull] private Thread _thread;
 
-		private int _takeOutPoint = 0;
-
 		public override void OnInspectorGUI()
 		{
 			_target = (RoadGenerator)target;
@@ -75,7 +73,7 @@ namespace Editor
 
 
 			GUILayout.Label("Stepping Options", labelStyle);
-			_target.stepSize = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.stepSize)), _target.stepSize);
+			_target.stepDistance = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.stepDistance)), _target.stepDistance);
 			_target.maxRotationAmountRadians = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.maxRotationAmountRadians)), _target.maxRotationAmountRadians);
 			_target.newRoadChance = EditorGUILayout.Slider(UppercaseWords(nameof(_target.newRoadChance)), _target.newRoadChance, 0.0f, 1.0f);
 
@@ -83,14 +81,6 @@ namespace Editor
 			if (GUILayout.Button("Start stepping"))
 			{
 				_thread = new Thread(() => _target.DoStepping());
-				_thread.Start();
-			}
-			GUI.enabled = true;
-
-			GUI.enabled = _target.HasPoints() && _thread is not {IsAlive: true};
-			if (GUILayout.Button(UppercaseWords(nameof(_target.DoubleLink))))
-			{
-				_thread = new Thread(() => _target.DoubleLink());
 				_thread.Start();
 			}
 			GUI.enabled = true;
@@ -107,28 +97,6 @@ namespace Editor
 			}
 			GUI.enabled = true;
 
-			_target.acceptableStraightsMin = Mathf.Clamp(EditorGUILayout.FloatField(UppercaseWords(nameof(_target.acceptableStraightsMin)), _target.acceptableStraightsMin), 0f, _target.acceptableStraightsMax);
-			_target.acceptableStraightsMax = Mathf.Clamp(EditorGUILayout.FloatField(UppercaseWords(nameof(_target.acceptableStraightsMax)), _target.acceptableStraightsMax), _target.acceptableStraightsMin, 360f);
-			EditorGUILayout.MinMaxSlider(ref _target.acceptableStraightsMin, ref _target.acceptableStraightsMax, 0f, 360f);
-			GUI.enabled = _target.HasPoints() && _thread is not {IsAlive: true};
-			if (GUILayout.Button(UppercaseWords(nameof(_target.MergeUnacceptableStraights))))
-			{
-				_thread = new Thread(() => _target.MergeUnacceptableStraights());
-				_thread.Start();
-			}
-			GUI.enabled = true;
-
-
-			GUILayout.Label("Take Out Options", labelStyle);
-			GUI.enabled = _target.HasPoints() && _thread is not {IsAlive: true};
-			_takeOutPoint = Mathf.Clamp(EditorGUILayout.IntField(UppercaseWords(nameof(_takeOutPoint)), _takeOutPoint), 0, _target.Points.Count - 1);
-			if (GUILayout.Button(UppercaseWords(nameof(_target.TakeOutPoint))))
-			{
-				_thread = new Thread(() => _target.TakeOutPoint(_takeOutPoint));
-				_thread.Start();
-			}
-			GUI.enabled = true;
-
 
 			GUILayout.Label("Verification Options", labelStyle);
 			GUI.enabled = _target.HasPoints() && _thread is not {IsAlive: true};
@@ -141,14 +109,10 @@ namespace Editor
 
 
 			GUILayout.Label("Debug Drawing Options", labelStyle);
-			_target.arrowHeadSize = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.arrowHeadSize)), _target.arrowHeadSize);
-			_target.arrowHeadAngle = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.arrowHeadAngle)), _target.arrowHeadAngle);
+			_target.showPointsSphere = EditorGUILayout.Toggle(UppercaseWords(nameof(_target.showPointsSphere)), _target.showPointsSphere);
+			_target.sphereSizeDefault = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.sphereSizeDefault)), _target.sphereSizeDefault);
+			_target.sphereSizeIncrease = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.sphereSizeIncrease)), _target.sphereSizeIncrease);
 			_target.showPointsIndex = EditorGUILayout.Toggle(UppercaseWords(nameof(_target.showPointsIndex)), _target.showPointsIndex);
-			_target.showStraightness = EditorGUILayout.Toggle(UppercaseWords(nameof(_target.showStraightness)), _target.showStraightness);
-
-
-			GUILayout.Label("Prefab Options", labelStyle);
-			_target.roadPrefab = (GameObject)EditorGUILayout.ObjectField(UppercaseWords(nameof(_target.roadPrefab)), _target.roadPrefab, typeof(GameObject), true);
 
 
 			// if thread is going, repaint the scene every frame, so we can see its progress
