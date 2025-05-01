@@ -108,6 +108,22 @@ namespace Editor
 			GUI.enabled = true;
 
 
+			GUILayout.Label("Mesh Options", labelStyle);
+			_target.meshWidth = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.meshWidth)), _target.meshWidth);
+			_target.textureStretching = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.textureStretching)), _target.textureStretching);
+			GUI.enabled = _target.HasMesh() && _thread is not {IsAlive: true};
+			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearMesh))))
+			{
+				_target.ClearMesh();
+			}
+			GUI.enabled = _target.HasPoints() && _thread is not {IsAlive: true};
+			if (GUILayout.Button(UppercaseWords(nameof(_target.GenerateMesh))))
+			{
+				_target.GenerateMesh();
+			}
+			GUI.enabled = true;
+
+
 			GUILayout.Label("Debug Drawing Options", labelStyle);
 			_target.showPointsSphere = EditorGUILayout.Toggle(UppercaseWords(nameof(_target.showPointsSphere)), _target.showPointsSphere);
 			_target.sphereSizeDefault = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.sphereSizeDefault)), _target.sphereSizeDefault);

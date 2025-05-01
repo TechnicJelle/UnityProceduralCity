@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = System.Random;
 
+[RequireComponent(typeof(MeshFilter))]
+[RequireComponent(typeof(MeshRenderer))]
 public class RoadGenerator : MonoBehaviour
 {
 
@@ -49,6 +51,14 @@ public class RoadGenerator : MonoBehaviour
 	public float mergeDistance = 3.0f;
 
 
+	// Mesh
+	[SerializeField]
+	public float meshWidth = 2.0f;
+
+	[SerializeField]
+	public float textureStretching = 1.0f;
+
+
 	// Debug Drawing
 	[SerializeField]
 	public bool showPointsSphere = true;
@@ -76,6 +86,8 @@ public class RoadGenerator : MonoBehaviour
 
 	public bool HasPoints() => Points.Count > 0;
 
+	public bool HasMesh() => GetComponent<MeshFilter>().sharedMesh != null;
+
 	public void ResetRng() => _rng = null;
 
 	public float RandomRange(float minNumber, float maxNumber)
@@ -84,7 +96,7 @@ public class RoadGenerator : MonoBehaviour
 		return (float)_rng.NextDouble() * (maxNumber - minNumber) + minNumber;
 	}
 
-	private void OnDrawGizmos()
+	private void OnDrawGizmosSelected()
 	{
 		//Apply the road generator transform to the gizmos
 		Gizmos.matrix = transform.localToWorldMatrix;
@@ -98,7 +110,7 @@ public class RoadGenerator : MonoBehaviour
 		Gizmos.DrawWireCube(Vector3.zero, new Vector3(width, height, 0));
 
 		//The points are stored offset, so we move the drawing by half width and height
-		Matrix4x4 translationMatrix = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, 0));
+		Matrix4x4 translationMatrix = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, -0.1f));
 		Gizmos.matrix *= translationMatrix;
 
 		// Draw the points
@@ -222,5 +234,65 @@ public class RoadGenerator : MonoBehaviour
 		{
 			Debug.LogError("Some connections are invalid");
 		}
+	}
+
+	public void ClearMesh()
+	{
+		MeshFilter meshFilter = GetComponent<MeshFilter>();
+		meshFilter.sharedMesh.Clear();
+		meshFilter.sharedMesh = null;
+	}
+
+	/// <remarks>cannot be called on a separate thread, due to using Unity APIs</remarks>
+	public void GenerateMesh()
+	{
+		CombineInstance[] combine = new CombineInstance[Roads.Count];
+		for(int i = 0; i < combine.Length; i++)
+		{
+			Road road = Roads[i];
+			combine[i].mesh = GenerateLineRectMesh(road.P1.Pos, road.P2.Pos);
+			//Give each road a slightly different height, to avoid z-fighting (better solution might be nice)
+			const float epsilon = 0.01f;
+			float roadHeight = RandomRange(-epsilon, epsilon);
+			//The points are stored offset, so we move the models by half width and height
+			combine[i].transform = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, roadHeight));
+		}
+
+		Mesh combinedMesh = new() {name = "RoadMesh"};
+		combinedMesh.CombineMeshes(combine);
+		combinedMesh.RecalculateNormals();
+		combinedMesh.RecalculateBounds();
+		combinedMesh.Optimize();
+		MeshFilter meshFilter = GetComponent<MeshFilter>();
+		meshFilter.sharedMesh = combinedMesh;
+	}
+
+	private Mesh GenerateLineRectMesh(Vector2 start, Vector2 end)
+	{
+		Vector2 ray = end - start;
+		Vector2 direction = ray.normalized;
+		Vector2 perpendicular = new(-direction.y, direction.x);
+		return new Mesh
+		{
+			vertices = new Vector3[]
+			{
+				start - perpendicular * meshWidth,
+				start + perpendicular * meshWidth,
+				end + perpendicular * meshWidth,
+				end - perpendicular * meshWidth,
+			},
+			triangles = new[]
+			{
+				0, 1, 2,
+				0, 2, 3,
+			},
+			uv = new Vector2[]
+			{
+				new(0, 0),
+				new(1, 0),
+				new(1, ray.magnitude * textureStretching),
+				new(0, ray.magnitude * textureStretching),
+			},
+		};
 	}
 }
