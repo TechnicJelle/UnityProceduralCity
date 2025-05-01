@@ -1,4 +1,4 @@
-using JetBrains.Annotations;
+#nullable enable
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -79,8 +79,7 @@ public class RoadGenerator : MonoBehaviour
 	public readonly List<Point> Points = new();
 	public readonly List<Road> Roads = new();
 
-	[CanBeNull]
-	private Random _rng;
+	private Random? _rng;
 
 #endregion
 
