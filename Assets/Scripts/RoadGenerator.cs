@@ -27,7 +27,7 @@ public class RoadGenerator : MonoBehaviour
 
 	// Spreading
 	[SerializeField]
-	public float middleSpawnFactor = 0.5f;
+	public float middleSpawnFactor = 0.25f;
 
 	[SerializeField]
 	public int initialStartPoints = 4;
@@ -46,7 +46,7 @@ public class RoadGenerator : MonoBehaviour
 
 	// Merging
 	[SerializeField]
-	public float mergeDistance = 0.5f;
+	public float mergeDistance = 3.0f;
 
 
 	// Debug Drawing
@@ -54,10 +54,10 @@ public class RoadGenerator : MonoBehaviour
 	public bool showPointsSphere = true;
 
 	[SerializeField]
-	public float sphereSizeDefault = 0.1f;
+	public float sphereSizeDefault = 4.0f;
 
 	[SerializeField]
-	public float sphereSizeIncrease = 0.05f;
+	public float sphereSizeIncrease = 5.0f;
 
 	[SerializeField]
 	public bool showPointsIndex = false;

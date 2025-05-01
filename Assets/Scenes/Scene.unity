@@ -457,17 +457,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   automaticSeed: 0
   seed: 0
-  width: 10
-  height: 10
+  width: 1000
+  height: 1000
   middleSpawnFactor: 0.25
   initialStartPoints: 4
-  stepDistance: 0.5
+  stepDistance: 50
   maxRotationAmountRadians: 0.4
   newRoadChance: 0.7
   mergeDistance: 0.3
   showPointsSphere: 1
-  sphereSizeDefault: 0.04
-  sphereSizeIncrease: 0.05
+  sphereSizeDefault: 4
+  sphereSizeIncrease: 5
   showPointsIndex: 0
 --- !u!4 &1567894975
 Transform:
