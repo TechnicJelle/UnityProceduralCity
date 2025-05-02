@@ -1,4 +1,4 @@
-using JetBrains.Annotations;
+#nullable enable
 using System.Collections.Generic;
 using System.Threading;
 using UnityEditor;
@@ -9,8 +9,8 @@ namespace Editor
 	[CustomEditor(typeof(RoadGenerator))]
 	public class RoadGeneratorEditor : UnityEditor.Editor
 	{
-		private RoadGenerator _target;
-		[CanBeNull] private Thread _thread;
+		private RoadGenerator? _target;
+		private Thread? _thread;
 
 		public override void OnInspectorGUI()
 		{
