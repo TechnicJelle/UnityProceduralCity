@@ -116,7 +116,7 @@ namespace Editor
 			{
 				_target.ClearMesh();
 			}
-			GUI.enabled = _target.HasPoints() && _thread is not {IsAlive: true};
+			GUI.enabled = _target.HasRoads() && _thread is not {IsAlive: true};
 			if (GUILayout.Button(UppercaseWords(nameof(_target.GenerateMesh))))
 			{
 				_target.GenerateMesh();

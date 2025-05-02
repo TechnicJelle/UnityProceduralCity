@@ -85,6 +85,8 @@ public class RoadGenerator : MonoBehaviour
 
 	public bool HasPoints() => Points.Count > 0;
 
+	public bool HasRoads() => Roads.Count > 0;
+
 	public bool HasMesh() => GetComponent<MeshFilter>().sharedMesh != null;
 
 	public void ResetRng() => _rng = null;
