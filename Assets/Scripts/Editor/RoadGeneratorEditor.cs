@@ -124,6 +124,37 @@ namespace Editor
 			GUI.enabled = true;
 
 
+			GUILayout.Label("Buildings Options", labelStyle);
+			_target.buildingAlongRoadChance = EditorGUILayout.Slider(UppercaseWords(nameof(_target.buildingAlongRoadChance)), _target.buildingAlongRoadChance, 0.0f, 1.0f);
+			_target.minRoadLengthForBuilding = Mathf.Clamp(EditorGUILayout.FloatField(UppercaseWords(nameof(_target.minRoadLengthForBuilding)), _target.minRoadLengthForBuilding), 0.0f, _target.stepDistance);
+
+			GUILayout.BeginHorizontal();
+			_target.buildingLengthFactorMin = Mathf.Clamp(EditorGUILayout.FloatField(UppercaseWords(nameof(_target.buildingLengthFactorMin)), _target.buildingLengthFactorMin), 0.0f, _target.buildingLengthFactorMax);
+			_target.buildingLengthFactorMax = Mathf.Clamp(EditorGUILayout.FloatField(UppercaseWords(nameof(_target.buildingLengthFactorMax)), _target.buildingLengthFactorMax), _target.buildingLengthFactorMin, 1.0f);
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			_target.buildingWidthFactorMin = Mathf.Clamp(EditorGUILayout.FloatField(UppercaseWords(nameof(_target.buildingWidthFactorMin)), _target.buildingWidthFactorMin), 0.0f, _target.buildingWidthFactorMax);
+			_target.buildingWidthFactorMax = Mathf.Clamp(EditorGUILayout.FloatField(UppercaseWords(nameof(_target.buildingWidthFactorMax)), _target.buildingWidthFactorMax), _target.buildingWidthFactorMin, 1.0f);
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			_target.buildingHeightFactorMin = Mathf.Clamp(EditorGUILayout.FloatField(UppercaseWords(nameof(_target.buildingHeightFactorMin)), _target.buildingHeightFactorMin), 0.0f, _target.buildingHeightFactorMax);
+			_target.buildingHeightFactorMax = Mathf.Clamp(EditorGUILayout.FloatField(UppercaseWords(nameof(_target.buildingHeightFactorMax)), _target.buildingHeightFactorMax), _target.buildingHeightFactorMin, 2.0f);
+			GUILayout.EndHorizontal();
+
+			GUI.enabled = _target.HasBuildings() && _thread is not {IsAlive: true};
+			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearBuildings))))
+			{
+				_target.ClearBuildings();
+			}
+			GUI.enabled = true;
+			GUI.enabled = _target.HasRoads() && _thread is not {IsAlive: true};
+			if (GUILayout.Button(UppercaseWords(nameof(_target.GenerateBuildingsAlongRoads))))
+			{
+				_thread = new Thread(() => _target.GenerateBuildingsAlongRoads());
+				_thread.Start();
+			}
+
+
 			GUILayout.Label("Debug Drawing Options", labelStyle);
 			_target.showPointsSphere = EditorGUILayout.Toggle(UppercaseWords(nameof(_target.showPointsSphere)), _target.showPointsSphere);
 			_target.sphereSizeDefault = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.sphereSizeDefault)), _target.sphereSizeDefault);

@@ -634,6 +634,14 @@ MonoBehaviour:
   mergeDistance: 3
   meshRadius: 2
   textureStretching: 0.1
+  buildingAlongRoadChance: 0.4
+  minRoadLengthForBuilding: 20
+  buildingLengthFactorMin: 0.6
+  buildingLengthFactorMax: 0.9
+  buildingWidthFactorMin: 0.1
+  buildingWidthFactorMax: 0.5
+  buildingHeightFactorMin: 0.1
+  buildingHeightFactorMax: 0.3
   showPointsSphere: 0
   sphereSizeDefault: 4
   sphereSizeIncrease: 5

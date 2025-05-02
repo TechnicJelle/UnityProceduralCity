@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Random = System.Random;
 
@@ -59,6 +60,29 @@ public class RoadGenerator : MonoBehaviour
 	public float textureStretching = 1.0f;
 
 
+	// Buildings
+	[SerializeField]
+	public float buildingAlongRoadChance = 1.0f;
+
+	[SerializeField]
+	public float minRoadLengthForBuilding = 20.0f;
+
+	[SerializeField]
+	public float buildingLengthFactorMin = 0.6f;
+	[SerializeField]
+	public float buildingLengthFactorMax = 0.9f;
+
+	[SerializeField]
+	public float buildingWidthFactorMin = 0.1f;
+	[SerializeField]
+	public float buildingWidthFactorMax = 0.5f;
+
+	[SerializeField]
+	public float buildingHeightFactorMin = 0.1f;
+	[SerializeField]
+	public float buildingHeightFactorMax = 0.3f;
+
+
 	// Debug Drawing
 	[SerializeField]
 	public bool showPointsSphere = true;
@@ -78,6 +102,7 @@ public class RoadGenerator : MonoBehaviour
 
 	public readonly List<Point> Points = new();
 	public readonly List<Road> Roads = new();
+	private readonly List<BuildingBox> _buildingBoxes = new();
 
 	private Random? _rng;
 
@@ -86,6 +111,8 @@ public class RoadGenerator : MonoBehaviour
 	public bool HasPoints() => Points.Count > 0;
 
 	public bool HasRoads() => Roads.Count > 0;
+
+	public bool HasBuildings() => _buildingBoxes.Count > 0;
 
 	public bool HasMesh() => GetComponent<MeshFilter>().sharedMesh != null;
 
@@ -142,6 +169,20 @@ public class RoadGenerator : MonoBehaviour
 			{
 				//we don't mind if the rendering is wrong/behind for a moment
 			}
+		}
+
+		// Draw the buildings
+		int buildingBoxesCount = _buildingBoxes.Count;
+		for(int i = 0; i < buildingBoxesCount; i++)
+		{
+			BuildingBox buildingBox = _buildingBoxes[i];
+			Gizmos.color = Color.green;
+			Matrix4x4 pushMatrix = Gizmos.matrix;
+			Gizmos.matrix *= Matrix4x4.TRS(buildingBox.Pos, buildingBox.Rotation, Vector3.one);
+			//x&y zero because the matrix already contains the position
+			//z is half the height, to put the bottom of the box on the ground
+			Gizmos.DrawCube(new Vector3(0, 0, buildingBox.Height / -2), new Vector3(buildingBox.Surface.x, buildingBox.Surface.y, buildingBox.Height));
+			Gizmos.matrix = pushMatrix;
 		}
 
 		// Reset the matrix to identity to avoid affecting other gizmos
@@ -263,5 +304,61 @@ public class RoadGenerator : MonoBehaviour
 		combinedMesh.Optimize();
 		MeshFilter meshFilter = GetComponent<MeshFilter>();
 		meshFilter.sharedMesh = combinedMesh;
+	}
+
+	public void ClearBuildings()
+	{
+		_buildingBoxes.Clear();
+	}
+
+	public void GenerateBuildingsAlongRoads()
+	{
+		foreach(Road road in Roads)
+		{
+			// //ensure the road is long enough to place a buildingS
+			// if (road.GetMagnitude() < stepDistance * 0.4f)
+			// {
+			// 	continue;
+			// }
+
+			if (RandomRange(0.0f, 1.0f) < buildingAlongRoadChance)
+			{
+				//check if the road is long enough to place a building
+				if (road.GetMagnitude() < minRoadLengthForBuilding)
+					continue;
+
+				GenerateBuildingAlongRoad(road, -1.1f);
+				GenerateBuildingAlongRoad(road, 1.1f);
+			}
+		}
+	}
+
+	private void GenerateBuildingAlongRoad(Road road, float side)
+	{
+		//building size (it's relative to its road's size)
+		float buildingWidth = road.GetMagnitude() * RandomRange(buildingWidthFactorMin, buildingWidthFactorMax);
+		float buildingLength = road.GetMagnitude() * RandomRange(buildingLengthFactorMin, buildingLengthFactorMax);
+		float buildingHeight = road.GetMagnitude() * RandomRange(buildingHeightFactorMin, buildingHeightFactorMax);
+
+		//position relative to the middle of the road, but offset by the road mesh radius
+		Vector2 roadDirection = road.GetDirection();
+		Vector2 perpendicular = new(-roadDirection.y, roadDirection.x);
+		Vector2 offset = perpendicular * (meshRadius + buildingWidth / 2f);
+		Vector2 pos = road.GetMiddlePos() + offset * side;
+
+		//inputs
+		Vector2 surface = new(buildingWidth, buildingLength);
+		Quaternion rotation = Quaternion.FromToRotation(Vector3.up, road.GetDirection());
+		BuildingBox potentialNewBuildingBox = new(pos, surface, buildingHeight, rotation);
+
+		//check if the building box is intersecting a road
+		bool overlapsAnyRoad = Roads.Any(otherRoad => potentialNewBuildingBox.CheckOverlap(otherRoad));
+
+		//check if the building box intersects with any other building boxes
+		// bool overlapsAnyOtherBuildingBox = _buildingBoxes.Any(buildingBox => buildingBox.CheckOverlap(potentialNewBuildingBox));
+		if (!overlapsAnyRoad)
+		{
+			_buildingBoxes.Add(potentialNewBuildingBox);
+		}
 	}
 }

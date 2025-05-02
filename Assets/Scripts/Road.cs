@@ -1,4 +1,5 @@
 #nullable enable
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -17,6 +18,12 @@ public class Road
 		P2 = p2;
 	}
 
+	public float GetMagnitude() => Vector2.Distance(P1.Pos, P2.Pos);
+
+	public Vector2 GetMiddlePos() => (P1.Pos + P2.Pos) / 2;
+
+	public Vector2 GetDirection() => (P2.Pos - P1.Pos).normalized;
+
 	public Vector2? Intersect(Road other)
 	{
 		return Intersect3(P1.Pos, P2.Pos, other.P1.Pos, other.P2.Pos);
@@ -24,7 +31,7 @@ public class Road
 
 	public void Render()
 	{
-		Gizmos.color = Color.yellow.WithAlpha(0.3f);
+		Gizmos.color = (GetMagnitude() < _roadGenerator.minRoadLengthForBuilding ? Color.red : Color.yellow).WithAlpha(0.3f);
 		Gizmos.DrawLine(P1.Pos, P2.Pos);
 	}
 
@@ -56,6 +63,21 @@ public class Road
 				new(0, ray.magnitude * _roadGenerator.textureStretching),
 			},
 		};
+	}
+
+	public BoundingPolygon ToBoundingPolygon()
+	{
+		Vector2 ray = P2.Pos - P1.Pos;
+		Vector2 direction = ray.normalized;
+		Vector2 perpendicular = new(-direction.y, direction.x);
+		List<Vector2> corners = new()
+		{
+			P1.Pos - perpendicular * _roadGenerator.meshRadius,
+			P1.Pos + perpendicular * _roadGenerator.meshRadius,
+			P2.Pos + perpendicular * _roadGenerator.meshRadius,
+			P2.Pos - perpendicular * _roadGenerator.meshRadius,
+		};
+		return new BoundingPolygon(GetMiddlePos(), corners);
 	}
 
 	private static Vector2? Intersect3(
