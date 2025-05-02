@@ -4,11 +4,15 @@ using UnityEngine;
 
 public class Road
 {
+	private readonly RoadGenerator _roadGenerator;
+
 	public readonly Point P1;
 	public readonly Point P2;
 
-	public Road(Point p1, Point p2)
+	public Road(RoadGenerator roadGenerator, Point p1, Point p2)
 	{
+		_roadGenerator = roadGenerator;
+
 		P1 = p1;
 		P2 = p2;
 	}
@@ -22,6 +26,36 @@ public class Road
 	{
 		Gizmos.color = Color.yellow.WithAlpha(0.3f);
 		Gizmos.DrawLine(P1.Pos, P2.Pos);
+	}
+
+	public Mesh ToMesh()
+	{
+		Vector2 ray = P2.Pos - P1.Pos;
+		Vector2 direction = ray.normalized;
+		Vector2 perpendicular = new(-direction.y, direction.x);
+		const float epsilon = 0.01f;
+		return new Mesh
+		{
+			vertices = new[]
+			{
+				(Vector3)(P1.Pos - perpendicular * _roadGenerator.meshWidth) + new Vector3(0, 0, epsilon * 0),
+				(Vector3)(P1.Pos + perpendicular * _roadGenerator.meshWidth) + new Vector3(0, 0, epsilon * 1),
+				(Vector3)(P2.Pos + perpendicular * _roadGenerator.meshWidth) + new Vector3(0, 0, epsilon * 2),
+				(Vector3)(P2.Pos - perpendicular * _roadGenerator.meshWidth) + new Vector3(0, 0, epsilon * 3),
+			},
+			triangles = new[]
+			{
+				0, 1, 2,
+				0, 2, 3,
+			},
+			uv = new Vector2[]
+			{
+				new(0, 0),
+				new(1, 0),
+				new(1, ray.magnitude * _roadGenerator.textureStretching),
+				new(0, ray.magnitude * _roadGenerator.textureStretching),
+			},
+		};
 	}
 
 	private static Vector2? Intersect3(

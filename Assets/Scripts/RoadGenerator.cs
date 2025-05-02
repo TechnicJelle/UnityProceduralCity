@@ -249,7 +249,7 @@ public class RoadGenerator : MonoBehaviour
 		for(int i = 0; i < combine.Length; i++)
 		{
 			Road road = Roads[i];
-			combine[i].mesh = GenerateLineRectMesh(road.P1.Pos, road.P2.Pos);
+			combine[i].mesh = road.ToMesh();
 			//The points are stored offset, so we move the models by half width and height
 			combine[i].transform = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, 0));
 		}
@@ -261,35 +261,5 @@ public class RoadGenerator : MonoBehaviour
 		combinedMesh.Optimize();
 		MeshFilter meshFilter = GetComponent<MeshFilter>();
 		meshFilter.sharedMesh = combinedMesh;
-	}
-
-	private Mesh GenerateLineRectMesh(Vector2 start, Vector2 end)
-	{
-		Vector2 ray = end - start;
-		Vector2 direction = ray.normalized;
-		Vector2 perpendicular = new(-direction.y, direction.x);
-		const float epsilon = 0.01f;
-		return new Mesh
-		{
-			vertices = new[]
-			{
-				(Vector3)(start - perpendicular * meshWidth) + new Vector3(0, 0, epsilon * 0),
-				(Vector3)(start + perpendicular * meshWidth) + new Vector3(0, 0, epsilon * 1),
-				(Vector3)(end + perpendicular * meshWidth) + new Vector3(0, 0, epsilon * 2),
-				(Vector3)(end - perpendicular * meshWidth) + new Vector3(0, 0, epsilon * 3),
-			},
-			triangles = new[]
-			{
-				0, 1, 2,
-				0, 2, 3,
-			},
-			uv = new Vector2[]
-			{
-				new(0, 0),
-				new(1, 0),
-				new(1, ray.magnitude * textureStretching),
-				new(0, ray.magnitude * textureStretching),
-			},
-		};
 	}
 }

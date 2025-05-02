@@ -133,7 +133,7 @@ public class Point
 		//create tentative new point at that new position
 		Point newPoint = new(_roadGenerator, newPos, stepDirection, _splitChance);
 		//create tentative new road with that new point
-		Road newRoad = new(this, newPoint);
+		Road newRoad = new(_roadGenerator, this, newPoint);
 
 		//check whether the new road intersects with any existing roads
 		List<IntersectionData> intersections = new();
@@ -217,8 +217,8 @@ public class Point
 			_roadGenerator.Points.Add(intersectionPoint);
 
 			//create the two new roads!
-			Road r1 = new(p1, intersectionPoint);
-			Road r2 = new(intersectionPoint, p2);
+			Road r1 = new(_roadGenerator, p1, intersectionPoint);
+			Road r2 = new(_roadGenerator, intersectionPoint, p2);
 
 			//add r1 to the three places it should be stored:
 			{
@@ -240,7 +240,7 @@ public class Point
 			//now the original road has been fully properly split!
 
 			//finally, we can create one last road to connect this point to the intersection point
-			Road r3 = new(this, intersectionPoint);
+			Road r3 = new(_roadGenerator, this, intersectionPoint);
 			//add r3 to the three places it should be stored:
 			{
 				//the points
