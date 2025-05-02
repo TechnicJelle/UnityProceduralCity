@@ -87,7 +87,7 @@ public class Point
 		}
 
 		//Index label
-		if (_roadGenerator is {showPointsIndex: true})
+		if (_roadGenerator.showPointsIndex)
 		{
 			Matrix4x4 pushMatrix = Handles.matrix;
 			Handles.matrix = Gizmos.matrix;

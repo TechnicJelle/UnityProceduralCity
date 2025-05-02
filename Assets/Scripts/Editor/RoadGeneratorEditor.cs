@@ -161,6 +161,8 @@ namespace Editor
 			_target.sphereSizeDefault = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.sphereSizeDefault)), _target.sphereSizeDefault);
 			_target.sphereSizeIncrease = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.sphereSizeIncrease)), _target.sphereSizeIncrease);
 			_target.showPointsIndex = EditorGUILayout.Toggle(UppercaseWords(nameof(_target.showPointsIndex)), _target.showPointsIndex);
+			_target.showRoadLines = EditorGUILayout.Toggle(UppercaseWords(nameof(_target.showRoadLines)), _target.showRoadLines);
+			_target.showBuildingBoxes = EditorGUILayout.Toggle(UppercaseWords(nameof(_target.showBuildingBoxes)), _target.showBuildingBoxes);
 
 
 			// if thread is going, repaint the scene every frame, so we can see its progress

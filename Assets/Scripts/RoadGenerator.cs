@@ -96,6 +96,12 @@ public class RoadGenerator : MonoBehaviour
 	[SerializeField]
 	public bool showPointsIndex = false;
 
+	[SerializeField]
+	public bool showRoadLines = true;
+
+	[SerializeField]
+	public bool showBuildingBoxes = true;
+
 #endregion
 
 #region Fields
@@ -157,32 +163,38 @@ public class RoadGenerator : MonoBehaviour
 		}
 
 		// Draw the roads
-		int roadCount = Roads.Count;
-		for(int i = 0; i < roadCount; i++)
+		if (showRoadLines)
 		{
-			try
+			int roadCount = Roads.Count;
+			for(int i = 0; i < roadCount; i++)
 			{
-				Road r = Roads[i];
-				r.Render();
-			}
-			catch(ArgumentOutOfRangeException)
-			{
-				//we don't mind if the rendering is wrong/behind for a moment
+				try
+				{
+					Road r = Roads[i];
+					r.Render();
+				}
+				catch(ArgumentOutOfRangeException)
+				{
+					//we don't mind if the rendering is wrong/behind for a moment
+				}
 			}
 		}
 
 		// Draw the buildings
-		int buildingBoxesCount = _buildingBoxes.Count;
-		for(int i = 0; i < buildingBoxesCount; i++)
+		if (showBuildingBoxes)
 		{
-			BuildingBox buildingBox = _buildingBoxes[i];
-			Gizmos.color = Color.green;
-			Matrix4x4 pushMatrix = Gizmos.matrix;
-			Gizmos.matrix *= Matrix4x4.TRS(buildingBox.Pos, buildingBox.Rotation, Vector3.one);
-			//x&y zero because the matrix already contains the position
-			//z is half the height, to put the bottom of the box on the ground
-			Gizmos.DrawCube(new Vector3(0, 0, buildingBox.Height / -2), new Vector3(buildingBox.Surface.x, buildingBox.Surface.y, buildingBox.Height));
-			Gizmos.matrix = pushMatrix;
+			int buildingBoxesCount = _buildingBoxes.Count;
+			for(int i = 0; i < buildingBoxesCount; i++)
+			{
+				BuildingBox buildingBox = _buildingBoxes[i];
+				Gizmos.color = Color.green;
+				Matrix4x4 pushMatrix = Gizmos.matrix;
+				Gizmos.matrix *= Matrix4x4.TRS(buildingBox.Pos, buildingBox.Rotation, Vector3.one);
+				//x&y zero because the matrix already contains the position
+				//z is half the height, to put the bottom of the box on the ground
+				Gizmos.DrawCube(new Vector3(0, 0, buildingBox.Height / -2), new Vector3(buildingBox.Surface.x, buildingBox.Surface.y, buildingBox.Height));
+				Gizmos.matrix = pushMatrix;
+			}
 		}
 
 		// Reset the matrix to identity to avoid affecting other gizmos
