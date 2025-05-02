@@ -632,7 +632,7 @@ MonoBehaviour:
   maxRotationAmountRadians: 0.4
   newRoadChance: 0.7
   mergeDistance: 3
-  meshWidth: 2
+  meshRadius: 2
   textureStretching: 0.1
   showPointsSphere: 0
   sphereSizeDefault: 4

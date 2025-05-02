@@ -38,10 +38,10 @@ public class Road
 		{
 			vertices = new[]
 			{
-				(Vector3)(P1.Pos - perpendicular * _roadGenerator.meshWidth) + new Vector3(0, 0, epsilon * 0),
-				(Vector3)(P1.Pos + perpendicular * _roadGenerator.meshWidth) + new Vector3(0, 0, epsilon * 1),
-				(Vector3)(P2.Pos + perpendicular * _roadGenerator.meshWidth) + new Vector3(0, 0, epsilon * 2),
-				(Vector3)(P2.Pos - perpendicular * _roadGenerator.meshWidth) + new Vector3(0, 0, epsilon * 3),
+				(Vector3)(P1.Pos - perpendicular * _roadGenerator.meshRadius) + new Vector3(0, 0, epsilon * 0),
+				(Vector3)(P1.Pos + perpendicular * _roadGenerator.meshRadius) + new Vector3(0, 0, epsilon * 1),
+				(Vector3)(P2.Pos + perpendicular * _roadGenerator.meshRadius) + new Vector3(0, 0, epsilon * 2),
+				(Vector3)(P2.Pos - perpendicular * _roadGenerator.meshRadius) + new Vector3(0, 0, epsilon * 3),
 			},
 			triangles = new[]
 			{

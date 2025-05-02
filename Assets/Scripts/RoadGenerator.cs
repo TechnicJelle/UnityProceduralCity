@@ -53,7 +53,7 @@ public class RoadGenerator : MonoBehaviour
 
 	// Mesh
 	[SerializeField]
-	public float meshWidth = 2.0f;
+	public float meshRadius = 2.0f;
 
 	[SerializeField]
 	public float textureStretching = 1.0f;

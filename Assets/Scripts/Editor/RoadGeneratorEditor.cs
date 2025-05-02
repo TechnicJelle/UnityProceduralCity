@@ -109,7 +109,7 @@ namespace Editor
 
 
 			GUILayout.Label("Mesh Options", labelStyle);
-			_target.meshWidth = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.meshWidth)), _target.meshWidth);
+			_target.meshRadius = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.meshRadius)), _target.meshRadius);
 			_target.textureStretching = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.textureStretching)), _target.textureStretching);
 			GUI.enabled = _target.HasMesh() && _thread is not {IsAlive: true};
 			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearMesh))))
