@@ -153,6 +153,7 @@ namespace Editor
 				_thread = new Thread(() => _target.GenerateBuildingsAlongRoads());
 				_thread.Start();
 			}
+			GUI.enabled = true;
 
 
 			GUILayout.Label("Debug Drawing Options", labelStyle);
