@@ -186,14 +186,15 @@ public class RoadGenerator : MonoBehaviour
 			int buildingBoxesCount = _buildingBoxes.Count;
 			for(int i = 0; i < buildingBoxesCount; i++)
 			{
-				BuildingBox buildingBox = _buildingBoxes[i];
-				Gizmos.color = Color.green;
-				Matrix4x4 pushMatrix = Gizmos.matrix;
-				Gizmos.matrix *= Matrix4x4.TRS(buildingBox.Pos, buildingBox.Rotation, Vector3.one);
-				//x&y zero because the matrix already contains the position
-				//z is half the height, to put the bottom of the box on the ground
-				Gizmos.DrawCube(new Vector3(0, 0, buildingBox.Height / -2), new Vector3(buildingBox.Surface.x, buildingBox.Surface.y, buildingBox.Height));
-				Gizmos.matrix = pushMatrix;
+				try
+				{
+					BuildingBox buildingBox = _buildingBoxes[i];
+					buildingBox.Render();
+				}
+				catch(ArgumentOutOfRangeException)
+				{
+					//we don't mind if the rendering is wrong/behind for a moment
+				}
 			}
 		}
 

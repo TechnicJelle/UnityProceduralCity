@@ -4,17 +4,17 @@ using UnityEngine;
 
 internal class BuildingBox
 {
-	public readonly Vector2 Pos;
-	public readonly Vector2 Surface;
-	public readonly float Height;
-	public readonly Quaternion Rotation;
+	private readonly Vector2 _pos;
+	private readonly Vector2 _surface;
+	private readonly float _height;
+	private readonly Quaternion _rotation;
 
 	public BuildingBox(Vector2 pos, Vector2 surface, float height, Quaternion rotation)
 	{
-		Pos = pos;
-		Surface = surface;
-		Height = height;
-		Rotation = rotation;
+		_pos = pos;
+		_surface = surface;
+		_height = height;
+		_rotation = rotation;
 	}
 
 	/// Checks if this box overlaps with another box,
@@ -40,17 +40,27 @@ internal class BuildingBox
 	{
 		List<Vector2> vertices = new()
 		{
-			Surface.x * 0.5f * Vector2.right,
-			Surface.y * 0.5f * Vector2.up,
-			-Surface.x * 0.5f * Vector2.right,
-			-Surface.y * 0.5f * Vector2.up,
+			_surface.x * 0.5f * Vector2.right,
+			_surface.y * 0.5f * Vector2.up,
+			-_surface.x * 0.5f * Vector2.right,
+			-_surface.y * 0.5f * Vector2.up,
 		};
 		for (int i = 0; i < vertices.Count; i++)
 		{
-			vertices[i] = Rotation * vertices[i];
-			vertices[i] += Pos;
+			vertices[i] = _rotation * vertices[i];
+			vertices[i] += _pos;
 		}
 
-		return new BoundingPolygon(Pos, vertices);
+		return new BoundingPolygon(_pos, vertices);
+	}
+	public void Render()
+	{
+		Gizmos.color = Color.green;
+		Matrix4x4 pushMatrix = Gizmos.matrix;
+		Gizmos.matrix *= Matrix4x4.TRS(_pos, _rotation, Vector3.one);
+		//x&y zero because the matrix already contains the position
+		//z is half the height, to put the bottom of the box on the ground
+		Gizmos.DrawCube(new Vector3(0, 0, _height / -2), new Vector3(_surface.x, _surface.y, _height));
+		Gizmos.matrix = pushMatrix;
 	}
 }
