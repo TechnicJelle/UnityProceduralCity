@@ -112,14 +112,14 @@ namespace Editor
 			_target.meshRadius = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.meshRadius)), _target.meshRadius);
 			_target.textureStretching = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.textureStretching)), _target.textureStretching);
 			GUI.enabled = _target.HasMesh() && _thread is not {IsAlive: true};
-			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearMesh))))
+			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearRoadMesh))))
 			{
-				_target.ClearMesh();
+				_target.ClearRoadMesh();
 			}
 			GUI.enabled = _target.HasRoads() && _thread is not {IsAlive: true};
-			if (GUILayout.Button(UppercaseWords(nameof(_target.GenerateMesh))))
+			if (GUILayout.Button(UppercaseWords(nameof(_target.GenerateRoadMesh))))
 			{
-				_target.GenerateMesh();
+				_target.GenerateRoadMesh();
 			}
 			GUI.enabled = true;
 

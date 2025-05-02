@@ -290,7 +290,7 @@ public class RoadGenerator : MonoBehaviour
 		}
 	}
 
-	public void ClearMesh()
+	public void ClearRoadMesh()
 	{
 		MeshFilter meshFilter = GetComponent<MeshFilter>();
 		meshFilter.sharedMesh.Clear();
@@ -298,7 +298,7 @@ public class RoadGenerator : MonoBehaviour
 	}
 
 	/// <remarks>cannot be called on a separate thread, due to using Unity APIs</remarks>
-	public void GenerateMesh()
+	public void GenerateRoadMesh()
 	{
 		CombineInstance[] combine = new CombineInstance[Roads.Count];
 		for(int i = 0; i < combine.Length; i++)
