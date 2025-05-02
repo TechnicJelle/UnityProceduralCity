@@ -250,11 +250,8 @@ public class RoadGenerator : MonoBehaviour
 		{
 			Road road = Roads[i];
 			combine[i].mesh = GenerateLineRectMesh(road.P1.Pos, road.P2.Pos);
-			//Give each road a slightly different height, to avoid z-fighting (better solution might be nice)
-			const float epsilon = 0.01f;
-			float roadHeight = RandomRange(-epsilon, epsilon);
 			//The points are stored offset, so we move the models by half width and height
-			combine[i].transform = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, roadHeight));
+			combine[i].transform = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, 0));
 		}
 
 		Mesh combinedMesh = new() {name = "RoadMesh"};
@@ -271,14 +268,15 @@ public class RoadGenerator : MonoBehaviour
 		Vector2 ray = end - start;
 		Vector2 direction = ray.normalized;
 		Vector2 perpendicular = new(-direction.y, direction.x);
+		const float epsilon = 0.01f;
 		return new Mesh
 		{
-			vertices = new Vector3[]
+			vertices = new[]
 			{
-				start - perpendicular * meshWidth,
-				start + perpendicular * meshWidth,
-				end + perpendicular * meshWidth,
-				end - perpendicular * meshWidth,
+				(Vector3)(start - perpendicular * meshWidth) + new Vector3(0, 0, epsilon * 0),
+				(Vector3)(start + perpendicular * meshWidth) + new Vector3(0, 0, epsilon * 1),
+				(Vector3)(end + perpendicular * meshWidth) + new Vector3(0, 0, epsilon * 2),
+				(Vector3)(end - perpendicular * meshWidth) + new Vector3(0, 0, epsilon * 3),
 			},
 			triangles = new[]
 			{
