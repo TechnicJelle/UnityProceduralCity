@@ -327,12 +327,6 @@ public class RoadGenerator : MonoBehaviour
 	{
 		foreach(Road road in Roads)
 		{
-			// //ensure the road is long enough to place a buildingS
-			// if (road.GetMagnitude() < stepDistance * 0.4f)
-			// {
-			// 	continue;
-			// }
-
 			if (RandomRange(0.0f, 1.0f) < buildingAlongRoadChance)
 			{
 				//check if the road is long enough to place a building
