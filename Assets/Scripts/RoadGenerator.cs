@@ -345,8 +345,8 @@ public class RoadGenerator : MonoBehaviour
 				if (road.GetMagnitude() < minRoadLengthForBuilding)
 					continue;
 
-				GenerateBuildingAlongRoad(road, -1.1f);
-				GenerateBuildingAlongRoad(road, 1.1f);
+				GenerateBuildingAlongRoad(road, -1.001f);
+				GenerateBuildingAlongRoad(road, 1.001f);
 			}
 		}
 	}

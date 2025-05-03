@@ -55,7 +55,10 @@ public class BuildingBox
 		//x&y zero because the matrix already contains the position
 		//z is half the height, to put the bottom of the box on the ground
 		//minus a bit to avoid z-fighting with the building meshes
-		Gizmos.DrawCube(new Vector3(0, 0, _height / -2 + RoadGenerator.ANTI_Z), new Vector3(_surface.x, _surface.y, _height - RoadGenerator.ANTI_Z));
+		Gizmos.DrawCube(
+			new Vector3(0, 0, _height / -2 + RoadGenerator.ANTI_Z),
+			new Vector3(_surface.x - RoadGenerator.ANTI_Z, _surface.y - RoadGenerator.ANTI_Z, _height - RoadGenerator.ANTI_Z)
+		);
 		Gizmos.matrix = pushMatrix;
 	}
 
@@ -78,26 +81,34 @@ public class BuildingBox
 			},
 			triangles = new[]
 			{
-				//bottom plane //TODO: Remove, because nobody will ever look at the bottom anyway
-				2, 1, 0,
-				3, 2, 0,
 				//top plane
 				4, 5, 6,
 				4, 6, 7,
-				//TODO: Add the other sides of the cube
+				//north plane
+				0, 1, 5,
+				0, 5, 4,
+				//south plane
+				2, 3, 7,
+				2, 7, 6,
+				//east plane
+				1, 2, 6,
+				1, 6, 5,
+				//west plane
+				3, 0, 4,
+				3, 4, 7,
 			},
 			uv = new Vector2[]
 			{
 				//bottom plane
 				new(0, 0),
 				new(1, 0),
-				new(1, 1),
-				new(0, 1),
-				//top plane
 				new(0, 0),
 				new(1, 0),
+				//top plane
+				new(0, 1),
 				new(1, 1),
 				new(0, 1),
+				new(1, 1),
 			},
 		};
 	}
