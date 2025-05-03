@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-internal class BuildingBox
+public class BuildingBox
 {
 	private readonly Vector2 _pos;
 	private readonly Vector2 _surface;
 	private readonly float _height;
 	private readonly Quaternion _rotation;
+
+	private readonly BoundingPolygon _polygon;
 
 	public BuildingBox(Vector2 pos, Vector2 surface, float height, Quaternion rotation)
 	{
@@ -15,6 +17,21 @@ internal class BuildingBox
 		_surface = surface;
 		_height = height;
 		_rotation = rotation;
+
+		List<Vector2> corners = new()
+		{
+			new Vector2(surface.x, surface.y) * 0.5f,
+			new Vector2(surface.x, -surface.y) * 0.5f,
+			new Vector2(-surface.x, -surface.y) * 0.5f,
+			new Vector2(-surface.x, surface.y) * 0.5f,
+		};
+		for(int i = 0; i < corners.Count; i++)
+		{
+			corners[i] = _rotation * corners[i];
+			corners[i] += _pos;
+		}
+
+		_polygon = new BoundingPolygon(corners);
 	}
 
 	/// Checks if this box overlaps with another box,
@@ -22,37 +39,14 @@ internal class BuildingBox
 	/// So it's a 2D check ONLY.
 	public bool CheckOverlap(BuildingBox other)
 	{
-		BoundingPolygon thisPolygon = ToBoundingPolygon();
-		BoundingPolygon otherPolygon = other.ToBoundingPolygon();
-
-		return BoundingPolygon.Collides(thisPolygon, otherPolygon);
+		return BoundingPolygon.Collides(_polygon, other._polygon);
 	}
 
 	public bool CheckOverlap(Road other)
 	{
-		BoundingPolygon thisPolygon = ToBoundingPolygon();
-		BoundingPolygon otherPolygon = other.ToBoundingPolygon();
-
-		return BoundingPolygon.Collides(thisPolygon, otherPolygon);
+		return BoundingPolygon.Collides(_polygon, other.Polygon);
 	}
 
-	private BoundingPolygon ToBoundingPolygon()
-	{
-		List<Vector2> vertices = new()
-		{
-			_surface.x * 0.5f * Vector2.right,
-			_surface.y * 0.5f * Vector2.up,
-			-_surface.x * 0.5f * Vector2.right,
-			-_surface.y * 0.5f * Vector2.up,
-		};
-		for (int i = 0; i < vertices.Count; i++)
-		{
-			vertices[i] = _rotation * vertices[i];
-			vertices[i] += _pos;
-		}
-
-		return new BoundingPolygon(_pos, vertices);
-	}
 	public void Render()
 	{
 		Gizmos.color = Color.green;
@@ -60,7 +54,51 @@ internal class BuildingBox
 		Gizmos.matrix *= Matrix4x4.TRS(_pos, _rotation, Vector3.one);
 		//x&y zero because the matrix already contains the position
 		//z is half the height, to put the bottom of the box on the ground
-		Gizmos.DrawCube(new Vector3(0, 0, _height / -2), new Vector3(_surface.x, _surface.y, _height));
+		//minus a bit to avoid z-fighting with the building meshes
+		Gizmos.DrawCube(new Vector3(0, 0, _height / -2 + RoadGenerator.ANTI_Z), new Vector3(_surface.x, _surface.y, _height - RoadGenerator.ANTI_Z));
 		Gizmos.matrix = pushMatrix;
+	}
+
+	public Mesh ToMesh()
+	{
+		return new Mesh
+		{
+			vertices = new Vector3[]
+			{
+				//bottom plane
+				new(_polygon.Corners[0].x, _polygon.Corners[0].y, 0),
+				new(_polygon.Corners[1].x, _polygon.Corners[1].y, 0),
+				new(_polygon.Corners[2].x, _polygon.Corners[2].y, 0),
+				new(_polygon.Corners[3].x, _polygon.Corners[3].y, 0),
+				//top plane
+				new(_polygon.Corners[0].x, _polygon.Corners[0].y, -_height),
+				new(_polygon.Corners[1].x, _polygon.Corners[1].y, -_height),
+				new(_polygon.Corners[2].x, _polygon.Corners[2].y, -_height),
+				new(_polygon.Corners[3].x, _polygon.Corners[3].y, -_height),
+			},
+			triangles = new[]
+			{
+				//bottom plane //TODO: Remove, because nobody will ever look at the bottom anyway
+				2, 1, 0,
+				3, 2, 0,
+				//top plane
+				4, 5, 6,
+				4, 6, 7,
+				//TODO: Add the other sides of the cube
+			},
+			uv = new Vector2[]
+			{
+				//bottom plane
+				new(0, 0),
+				new(1, 0),
+				new(1, 1),
+				new(0, 1),
+				//top plane
+				new(0, 0),
+				new(1, 0),
+				new(1, 1),
+				new(0, 1),
+			},
+		};
 	}
 }

@@ -111,7 +111,7 @@ namespace Editor
 			GUILayout.Label("Mesh Options", labelStyle);
 			_target.meshRadius = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.meshRadius)), _target.meshRadius);
 			_target.textureStretching = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.textureStretching)), _target.textureStretching);
-			GUI.enabled = _target.HasMesh() && _thread is not {IsAlive: true};
+			GUI.enabled = _target.HasRoadMesh() && _thread is not {IsAlive: true};
 			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearRoadMesh))))
 			{
 				_target.ClearRoadMesh();
@@ -152,6 +152,23 @@ namespace Editor
 			{
 				_thread = new Thread(() => _target.GenerateBuildingsAlongRoads());
 				_thread.Start();
+			}
+			GUI.enabled = true;
+
+
+			GUILayout.Label("Buildings Object Options", labelStyle);
+			_target.buildingsMaterial = (Material)EditorGUILayout.ObjectField(UppercaseWords(nameof(_target.buildingsMaterial)), _target.buildingsMaterial, typeof(Material), false);
+
+			GUI.enabled = _target.HasBuildingsObject() && _thread is not {IsAlive: true};
+			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearBuildingsObject))))
+			{
+				_target.ClearBuildingsObject();
+			}
+			GUI.enabled = true;
+			GUI.enabled = _target.HasBuildings() && _thread is not {IsAlive: true};
+			if (GUILayout.Button(UppercaseWords(nameof(_target.GenerateBuildingsObject))))
+			{
+				_target.GenerateBuildingsObject();
 			}
 			GUI.enabled = true;
 

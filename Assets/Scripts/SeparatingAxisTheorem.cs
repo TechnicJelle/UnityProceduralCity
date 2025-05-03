@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,14 +13,9 @@ public struct BoundingPolygon
 {
 	/// <summary>
 	/// The corners of the bounding polygon,
-	/// in relation to its origin
+	/// in relation to (0,0)
 	/// </summary>
 	public List<Vector2> Corners;
-
-	/// <summary>
-	/// The center of the polygon in the game world
-	/// </summary>
-	public Vector2 Center;
 
 	/// <summary>
 	/// The normals of each corner of this bounding polygon
@@ -33,12 +29,10 @@ public struct BoundingPolygon
 	/// In order to be used with Separating Axis Theorem,
 	/// the bounding polygon MUST be convex.
 	/// </remarks>
-	/// <param name="center">The center of the polygon</param>
 	/// <param name="corners">The corners of the polygon</param>
-	public BoundingPolygon(Vector2 center, List<Vector2> corners)
+	public BoundingPolygon(List<Vector2> corners)
 	{
 		// Store the center and corners
-		Center = center;
 		Corners = corners;
 		// Determine the normal vectors for the sides of the shape
 		// We can use a hashset to avoid duplicating normals
@@ -61,6 +55,16 @@ public struct BoundingPolygon
 		}
 		// Store the normals
 		Normals = normals.ToArray();
+	}
+
+	public void Render()
+	{
+		for(int i = 0; i < Corners.Count; i++)
+		{
+			Vector2 start = Corners[i];
+			Vector2 end = Corners[(i + 1) % Corners.Count];
+			Gizmos.DrawLine(start, end);
+		}
 	}
 
 	/// <summary>

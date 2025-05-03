@@ -60,7 +60,7 @@ public class RoadGenerator : MonoBehaviour
 	public float textureStretching = 1.0f;
 
 
-	// Buildings
+	// Buildings Generation
 	[SerializeField]
 	public float buildingAlongRoadChance = 1.0f;
 
@@ -81,6 +81,11 @@ public class RoadGenerator : MonoBehaviour
 	public float buildingHeightFactorMin = 0.1f;
 	[SerializeField]
 	public float buildingHeightFactorMax = 0.3f;
+
+
+	// Buildings Object
+	[SerializeField]
+	public Material? buildingsMaterial;
 
 
 	// Debug Drawing
@@ -106,6 +111,9 @@ public class RoadGenerator : MonoBehaviour
 
 #region Fields
 
+	public const float ANTI_Z = 0.1f;
+	private const string BUILDINGS_OBJECT_NAME = "Buildings";
+
 	public readonly List<Point> Points = new();
 	public readonly List<Road> Roads = new();
 	private readonly List<BuildingBox> _buildingBoxes = new();
@@ -118,9 +126,11 @@ public class RoadGenerator : MonoBehaviour
 
 	public bool HasRoads() => Roads.Count > 0;
 
+	public bool HasRoadMesh() => GetComponent<MeshFilter>().sharedMesh != null;
+
 	public bool HasBuildings() => _buildingBoxes.Count > 0;
 
-	public bool HasMesh() => GetComponent<MeshFilter>().sharedMesh != null;
+	public bool HasBuildingsObject() => transform.Find(BUILDINGS_OBJECT_NAME) != null;
 
 	public void ResetRng() => _rng = null;
 
@@ -144,7 +154,8 @@ public class RoadGenerator : MonoBehaviour
 		Gizmos.DrawWireCube(Vector3.zero, new Vector3(width, height, 0));
 
 		//The points are stored offset, so we move the drawing by half width and height
-		Matrix4x4 translationMatrix = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, -0.1f));
+		//We also draw the gizmos a bit higher, to avoid z-fighting with the road meshes
+		Matrix4x4 translationMatrix = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, -ANTI_Z));
 		Gizmos.matrix *= translationMatrix;
 
 		// Draw the points
@@ -367,5 +378,49 @@ public class RoadGenerator : MonoBehaviour
 		{
 			_buildingBoxes.Add(potentialNewBuildingBox);
 		}
+	}
+
+	public void ClearBuildingsObject()
+	{
+		Transform[] children = transform.GetComponentsInChildren<Transform>();
+		foreach(Transform child in children)
+		{
+			if (child.name == BUILDINGS_OBJECT_NAME)
+			{
+				DestroyImmediate(child.gameObject);
+			}
+		}
+	}
+
+	/// <remarks>cannot be called on a separate thread, due to using Unity APIs</remarks>
+	public void GenerateBuildingsObject()
+	{
+		GameObject buildingsObject = new(BUILDINGS_OBJECT_NAME);
+		buildingsObject.transform.SetParent(transform);
+		buildingsObject.transform.localPosition = Vector3.zero;
+		buildingsObject.transform.localRotation = Quaternion.identity;
+		buildingsObject.transform.localScale = Vector3.one;
+
+		//create the mesh
+		CombineInstance[] combine = new CombineInstance[_buildingBoxes.Count];
+		for(int i = 0; i < combine.Length; i++)
+		{
+			BuildingBox buildingBox = _buildingBoxes[i];
+			combine[i].mesh = buildingBox.ToMesh();
+			//The points are stored offset, so we move the models by half width and height
+			combine[i].transform = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, 0));
+		}
+
+		Mesh combinedMesh = new() {name = "Buildings"};
+		combinedMesh.CombineMeshes(combine);
+		combinedMesh.RecalculateNormals();
+		combinedMesh.RecalculateBounds();
+		combinedMesh.Optimize();
+
+		MeshFilter meshFilter = buildingsObject.AddComponent<MeshFilter>();
+		meshFilter.sharedMesh = combinedMesh;
+
+		MeshRenderer meshRenderer = buildingsObject.AddComponent<MeshRenderer>();
+		meshRenderer.sharedMaterial = buildingsMaterial;
 	}
 }

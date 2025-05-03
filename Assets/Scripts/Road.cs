@@ -10,12 +10,27 @@ public class Road
 	public readonly Point P1;
 	public readonly Point P2;
 
+	private readonly BoundingPolygon _polygon;
+	public BoundingPolygon Polygon => _polygon;
+
 	public Road(RoadGenerator roadGenerator, Point p1, Point p2)
 	{
 		_roadGenerator = roadGenerator;
 
 		P1 = p1;
 		P2 = p2;
+
+		Vector2 ray = P2.Pos - P1.Pos;
+		Vector2 direction = ray.normalized;
+		Vector2 perpendicular = new(-direction.y, direction.x);
+		List<Vector2> corners = new()
+		{
+			P1.Pos - perpendicular * _roadGenerator.meshRadius,
+			P1.Pos + perpendicular * _roadGenerator.meshRadius,
+			P2.Pos + perpendicular * _roadGenerator.meshRadius,
+			P2.Pos - perpendicular * _roadGenerator.meshRadius,
+		};
+		_polygon = new BoundingPolygon(corners);
 	}
 
 	public float GetMagnitude() => Vector2.Distance(P1.Pos, P2.Pos);
@@ -37,18 +52,15 @@ public class Road
 
 	public Mesh ToMesh()
 	{
-		Vector2 ray = P2.Pos - P1.Pos;
-		Vector2 direction = ray.normalized;
-		Vector2 perpendicular = new(-direction.y, direction.x);
 		const float epsilon = 0.01f;
 		return new Mesh
 		{
-			vertices = new[]
+			vertices = new Vector3[]
 			{
-				(Vector3)(P1.Pos - perpendicular * _roadGenerator.meshRadius) + new Vector3(0, 0, epsilon * 0),
-				(Vector3)(P1.Pos + perpendicular * _roadGenerator.meshRadius) + new Vector3(0, 0, epsilon * 1),
-				(Vector3)(P2.Pos + perpendicular * _roadGenerator.meshRadius) + new Vector3(0, 0, epsilon * 2),
-				(Vector3)(P2.Pos - perpendicular * _roadGenerator.meshRadius) + new Vector3(0, 0, epsilon * 3),
+				new(_polygon.Corners[0].x, _polygon.Corners[0].y, epsilon * 0),
+				new(_polygon.Corners[1].x, _polygon.Corners[1].y, epsilon * 1),
+				new(_polygon.Corners[2].x, _polygon.Corners[2].y, epsilon * 2),
+				new(_polygon.Corners[3].x, _polygon.Corners[3].y, epsilon * 3),
 			},
 			triangles = new[]
 			{
@@ -59,25 +71,10 @@ public class Road
 			{
 				new(0, 0),
 				new(1, 0),
-				new(1, ray.magnitude * _roadGenerator.textureStretching),
-				new(0, ray.magnitude * _roadGenerator.textureStretching),
+				new(1, GetMagnitude() * _roadGenerator.textureStretching),
+				new(0, GetMagnitude() * _roadGenerator.textureStretching),
 			},
 		};
-	}
-
-	public BoundingPolygon ToBoundingPolygon()
-	{
-		Vector2 ray = P2.Pos - P1.Pos;
-		Vector2 direction = ray.normalized;
-		Vector2 perpendicular = new(-direction.y, direction.x);
-		List<Vector2> corners = new()
-		{
-			P1.Pos - perpendicular * _roadGenerator.meshRadius,
-			P1.Pos + perpendicular * _roadGenerator.meshRadius,
-			P2.Pos + perpendicular * _roadGenerator.meshRadius,
-			P2.Pos - perpendicular * _roadGenerator.meshRadius,
-		};
-		return new BoundingPolygon(GetMiddlePos(), corners);
 	}
 
 	private static Vector2? Intersect3(
