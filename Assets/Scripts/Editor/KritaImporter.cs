@@ -1,4 +1,5 @@
 #nullable enable
+using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using UnityEditor.AssetImporters;
@@ -34,8 +35,11 @@ namespace Editor
 			using ZipArchive zip = ZipFile.OpenRead(assetPath);
 			ZipArchiveEntry png = GetPNG(zip, ctx.assetPath);
 
+			//get image info (width, height) to ensure mipmap generation works
+			Image img = Image.FromStream(png.Open());
+
 			// Load the .png file into a Texture2D
-			Texture2D texture = new(0, 0);
+			Texture2D texture = new(img.Width, img.Height);
 			using (Stream stream = png.Open())
 			{
 				byte[] bytes = new byte[png.Length];
