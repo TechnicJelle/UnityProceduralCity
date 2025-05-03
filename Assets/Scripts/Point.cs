@@ -112,6 +112,9 @@ public class Point
 		}
 
 		StepDir(_dir);
+
+		//this point is done and will not step again.
+		Head = false;
 	}
 
 	private struct IntersectionData
@@ -250,10 +253,6 @@ public class Point
 				_roadGenerator.Roads.Add(r3);
 			}
 		}
-
-		//whether we set a next step, or connected to an existing road,
-		//this point is done and will not step again.
-		Head = false;
 	}
 
 	/// <summary>
