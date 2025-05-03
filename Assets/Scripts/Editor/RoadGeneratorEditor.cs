@@ -157,7 +157,7 @@ namespace Editor
 
 
 			GUILayout.Label("Buildings Object Options", labelStyle);
-			_target.buildingsMaterial = (Material)EditorGUILayout.ObjectField(UppercaseWords(nameof(_target.buildingsMaterial)), _target.buildingsMaterial, typeof(Material), false);
+			_target.buildingsMaterial = ObjectField(UppercaseWords(nameof(_target.buildingsMaterial)), _target.buildingsMaterial);
 
 			GUI.enabled = _target.HasBuildingsObject() && _thread is not {IsAlive: true};
 			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearBuildingsObject))))
@@ -221,6 +221,11 @@ namespace Editor
 			}
 
 			return string.Join(" ", words);
+		}
+
+		private static T ObjectField<T>(string label, T? obj, bool allowSceneObjects = false) where T : Object
+		{
+			return (T)EditorGUILayout.ObjectField(label, obj, typeof(T), allowSceneObjects);
 		}
 	}
 }
