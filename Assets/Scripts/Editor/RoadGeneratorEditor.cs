@@ -223,9 +223,9 @@ namespace Editor
 			return string.Join(" ", words);
 		}
 
-		private static T ObjectField<T>(string label, T? obj, bool allowSceneObjects = false) where T : Object
+		private static T ObjectField<T>(string label, T? obj, bool allowObjectsFromScene = false) where T : Object
 		{
-			return (T)EditorGUILayout.ObjectField(label, obj, typeof(T), allowSceneObjects);
+			return (T)EditorGUILayout.ObjectField(label, obj, typeof(T), allowObjectsFromScene);
 		}
 	}
 }
