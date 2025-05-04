@@ -1,4 +1,4 @@
-using JetBrains.Annotations;
+#nullable enable
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -69,6 +69,7 @@ public struct BoundingPolygon
 
 	/// <summary>
 	/// Detects a collision between two convex polygons
+	/// using the Separating Axis Theorem
 	/// </summary>
 	/// <param name="p1">the first polygon</param>
 	/// <param name="p2">the second polygon</param>
