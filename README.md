@@ -17,6 +17,10 @@ A procedural city generation setup in Unity, in the style of Paris from Assassin
 
 ## Visuals and WIP screenshots
 
+![image](https://github.com/user-attachments/assets/598d339e-7df1-4521-b260-b2507b085beb)
+
+![image](https://github.com/user-attachments/assets/57e9b4b5-e5ed-401a-883c-89e080238c17)
+
 ![image](https://github.com/user-attachments/assets/0a09e1ca-f607-4393-8549-775eafe85140)
 
 ![image](https://github.com/user-attachments/assets/e84a129d-725f-4c5d-a308-179b6bfc3bc1)
