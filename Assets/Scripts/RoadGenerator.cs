@@ -537,6 +537,12 @@ public class RoadGenerator : MonoBehaviour
 
 		//The points are stored offset, so we move the models by half width and height
 		Matrix4x4 halfOff = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, 0));
+
+		//TODO: Do not do this.
+		//It is 88 megabytes of raw mesh data.
+		//Just accept the few extra GameObjects, and instance the prefabs normally.
+		//The RoofMatrix should still work for the prefabs, too.
+
 		//create the mesh
 		CombineInstance[] combine = new CombineInstance[_buildingBoxes.Count];
 		for(int i = 0; i < combine.Length; i++)
