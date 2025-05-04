@@ -34,6 +34,30 @@ public class BuildingBox
 		_polygon = new BoundingPolygon(corners);
 	}
 
+	public bool IntersectsAPlaceToAvoid(RoadGenerator roadGenerator)
+	{
+		foreach(Vector2 corner in _polygon.Corners)
+		{
+			if (roadGenerator.IsPlaceToAvoid(corner))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public bool IntersectsAPlaceToBridgeOver(RoadGenerator roadGenerator)
+	{
+		foreach(Vector2 corner in _polygon.Corners)
+		{
+			if (roadGenerator.IsPlaceToBridgeOver(corner))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/// Checks if this box overlaps with another box,
 	/// taking rotation into account, but not the height.
 	/// So it's a 2D check ONLY.

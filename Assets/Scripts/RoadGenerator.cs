@@ -417,15 +417,23 @@ public class RoadGenerator : MonoBehaviour
 		Quaternion rotation = Quaternion.FromToRotation(Vector3.up, road.GetDirection());
 		BuildingBox potentialNewBuildingBox = new(pos, surface, buildingHeight, rotation);
 
+		//check if the building box is intersecting a place to avoid
+		bool overlapsAnyPlaceToAvoid = potentialNewBuildingBox.IntersectsAPlaceToAvoid(this);
+		if (overlapsAnyPlaceToAvoid) return;
+
+		//check if the building box is intersecting a place to bridge over
+		bool overlapsAnyPlaceToBridgeOver = potentialNewBuildingBox.IntersectsAPlaceToBridgeOver(this);
+		if (overlapsAnyPlaceToBridgeOver) return;
+
 		//check if the building box is intersecting a road
 		bool overlapsAnyRoad = Roads.Any(otherRoad => potentialNewBuildingBox.CheckOverlap(otherRoad));
+		if (overlapsAnyRoad) return;
 
 		//check if the building box intersects with any other building boxes
 		// bool overlapsAnyOtherBuildingBox = _buildingBoxes.Any(buildingBox => buildingBox.CheckOverlap(potentialNewBuildingBox));
-		if (!overlapsAnyRoad)
-		{
-			_buildingBoxes.Add(potentialNewBuildingBox);
-		}
+		// if (overlapsAnyOtherBuildingBox) return;
+
+		_buildingBoxes.Add(potentialNewBuildingBox);
 	}
 
 	public void ClearBuildingsObject()
