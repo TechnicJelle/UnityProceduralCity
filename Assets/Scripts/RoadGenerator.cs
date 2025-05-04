@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
 using Random = System.Random;
 
 [RequireComponent(typeof(MeshFilter))]
@@ -137,7 +136,7 @@ public class RoadGenerator : MonoBehaviour
 
 	private const string ROADS_MESH_CACHE_PATH = "Assets/MeshCaches/Roads.mesh";
 	private const string BUILDINGS_MESH_CACHE_PATH = "Assets/MeshCaches/Buildings.mesh";
-	private const string BUILDINGS_ROOFS_MESH_CACHE_PATH = "Assets/MeshCaches/BuildingsRoofs.mesh";
+	private const string BUILDINGS_ROOFS_PREFAB_CACHE_PATH = "Assets/MeshCaches/BuildingsRoofs.prefab";
 
 	public readonly List<Point> Points = new();
 	public readonly List<Road> Roads = new();
@@ -520,48 +519,44 @@ public class RoadGenerator : MonoBehaviour
 				DestroyImmediate(child.gameObject);
 			}
 		}
-		AssetDatabase.DeleteAsset(BUILDINGS_ROOFS_MESH_CACHE_PATH);
+		AssetDatabase.DeleteAsset(BUILDINGS_ROOFS_PREFAB_CACHE_PATH);
 	}
 
 	public void GenerateRoofsObject()
 	{
 		GameObject roofsObject = CreateChild(BUILDINGS_ROOFS_OBJECT_NAME);
+
 		//The points are stored offset, so we move the models by half width and height
 		Matrix4x4 halfOff = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, 0));
 
-		//TODO: Do not do this.
-		//It is 88 megabytes of raw mesh data.
-		//Just accept the few extra GameObjects, and instance the prefabs normally.
-		//The RoofMatrix should still work for the prefabs, too.
-
-		//create the mesh
-		CombineInstance[] combine = new CombineInstance[_buildingBoxes.Count];
-		for(int i = 0; i < combine.Length; i++)
+		for(int i = 0; i < _buildingBoxes.Count; i++)
 		{
-			GameObject roofPrefab = roofPrefabs[RandomRange(0, roofPrefabs.Count)];
-			Mesh roofMesh = roofPrefab.GetComponent<MeshFilter>().sharedMesh;
-			combine[i].mesh = roofMesh;
+			GameObject randomRoofPrefab = roofPrefabs[RandomRange(0, roofPrefabs.Count)];
+
+			GameObject? roofObject = (GameObject)PrefabUtility.InstantiatePrefab(randomRoofPrefab, roofsObject.transform);
+			if (roofObject == null)
+			{
+				Debug.LogError("Failed to instantiate roof prefab");
+				return;
+			}
+			roofObject.isStatic = true;
 
 			BuildingBox buildingBox = _buildingBoxes[i];
-			combine[i].transform = halfOff * buildingBox.GetRoofMatrix();
+			Matrix4x4 destinationMatrix = halfOff * buildingBox.GetRoofMatrix();
+			roofObject.transform.localPosition = destinationMatrix.GetColumn(3);
+			roofObject.transform.localRotation = Quaternion.LookRotation(destinationMatrix.GetColumn(2), destinationMatrix.GetColumn(1));
+			roofObject.transform.localScale = new Vector3(destinationMatrix.GetColumn(0).magnitude, destinationMatrix.GetColumn(1).magnitude, destinationMatrix.GetColumn(2).magnitude);
+
+			MeshRenderer meshRenderer = roofObject.GetComponent<MeshRenderer>();
+			meshRenderer.sharedMaterial = roofsMaterial;
 		}
-		Mesh combinedMesh = new()
+
+		PrefabUtility.SaveAsPrefabAssetAndConnect(roofsObject, BUILDINGS_ROOFS_PREFAB_CACHE_PATH, InteractionMode.UserAction, out bool success);
+		if (!success)
 		{
-			name = "BuildingsRoofs",
-			indexFormat = IndexFormat.UInt32,
-		};
-		combinedMesh.CombineMeshes(combine);
-		combinedMesh.RecalculateNormals();
-		combinedMesh.RecalculateBounds();
-		combinedMesh.Optimize();
-
-		AssetDatabase.CreateAsset(combinedMesh, BUILDINGS_ROOFS_MESH_CACHE_PATH);
-
-		MeshFilter meshFilter = roofsObject.AddComponent<MeshFilter>();
-		meshFilter.sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(BUILDINGS_ROOFS_MESH_CACHE_PATH);
-
-		MeshRenderer meshRenderer = roofsObject.AddComponent<MeshRenderer>();
-		meshRenderer.sharedMaterial = roofsMaterial;
+			Debug.LogError("Failed to save roofs prefab");
+			return;
+		}
 	}
 
 	private GameObject CreateChild(string childName, Transform? parent = null)
