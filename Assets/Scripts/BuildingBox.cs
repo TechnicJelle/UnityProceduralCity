@@ -111,9 +111,6 @@ public class BuildingBox
 			},
 			triangles = new[]
 			{
-				//top plane
-				4, 5, 6,
-				4, 6, 7,
 				//north plane
 				0, 1, 5,
 				0, 5, 4,
