@@ -481,12 +481,7 @@ public class RoadGenerator : MonoBehaviour
 	/// <remarks>cannot be called on a separate thread, due to using Unity APIs</remarks>
 	public void GenerateBuildingsObject()
 	{
-		GameObject buildingsObject = new(BUILDINGS_OBJECT_NAME);
-		buildingsObject.transform.SetParent(transform);
-		buildingsObject.transform.localPosition = Vector3.zero;
-		buildingsObject.transform.localRotation = Quaternion.identity;
-		buildingsObject.transform.localScale = Vector3.one;
-		buildingsObject.isStatic = true;
+		GameObject buildingsObject = CreateChild(BUILDINGS_OBJECT_NAME);
 
 		//The points are stored offset, so we move the models by half width and height
 		Matrix4x4 halfOff = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, 0));
@@ -529,13 +524,7 @@ public class RoadGenerator : MonoBehaviour
 
 	public void GenerateRoofsObject()
 	{
-		GameObject roofsObject = new(BUILDINGS_ROOFS_OBJECT_NAME);
-		roofsObject.transform.SetParent(transform);
-		roofsObject.transform.localPosition = Vector3.zero;
-		roofsObject.transform.localRotation = Quaternion.identity;
-		roofsObject.transform.localScale = Vector3.one;
-		roofsObject.isStatic = true;
-
+		GameObject roofsObject = CreateChild(BUILDINGS_ROOFS_OBJECT_NAME);
 		//The points are stored offset, so we move the models by half width and height
 		Matrix4x4 halfOff = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, 0));
 
@@ -572,6 +561,17 @@ public class RoadGenerator : MonoBehaviour
 
 		MeshRenderer meshRenderer = roofsObject.AddComponent<MeshRenderer>();
 		meshRenderer.sharedMaterial = roofsMaterial;
+	}
+
+	private GameObject CreateChild(string childName, Transform? parent = null)
+	{
+		GameObject childObject = new(childName);
+		childObject.transform.SetParent(parent == null ? transform : parent);
+		childObject.transform.localPosition = Vector3.zero;
+		childObject.transform.localRotation = Quaternion.identity;
+		childObject.transform.localScale = Vector3.one;
+		childObject.isStatic = true;
+		return childObject;
 	}
 
 	#endif //UNITY_EDITOR
