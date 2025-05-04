@@ -512,8 +512,9 @@ public class RoadGenerator : MonoBehaviour
 	public void ClearRoofsObject()
 	{
 		Transform[] children = transform.GetComponentsInChildren<Transform>();
-		foreach(Transform child in children)
+		for(int i = children.Length - 1; i >= 0; i--)
 		{
+			Transform child = children[i];
 			if (child.name == BUILDINGS_ROOFS_OBJECT_NAME)
 			{
 				DestroyImmediate(child.gameObject);
