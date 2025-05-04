@@ -1,6 +1,5 @@
 #nullable enable
 using System.Collections.Generic;
-using System.Threading;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,21 +9,10 @@ namespace Editor
 	public class RoadGeneratorEditor : UnityEditor.Editor
 	{
 		private RoadGenerator? _target;
-		private Thread? _thread;
 
 		public override void OnInspectorGUI()
 		{
 			_target = (RoadGenerator)target;
-
-			GUI.enabled = _thread is {IsAlive: true};
-			if (GUILayout.Button("Stop Current Process!"))
-			{
-				_thread?.Abort();
-				_thread = null;
-				SceneView.RepaintAll();
-				Repaint();
-			}
-			GUI.enabled = true;
 
 			EditorGUI.BeginChangeCheck();
 
@@ -52,8 +40,6 @@ namespace Editor
 			GUI.enabled = _target.HasPoints();
 			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearRoads))))
 			{
-				_thread?.Abort();
-				_thread = null;
 				_target.ClearRoads();
 				SceneView.RepaintAll();
 				Repaint();
@@ -65,13 +51,11 @@ namespace Editor
 			_target.middleSpawnFactor = EditorGUILayout.Slider(UppercaseWords(nameof(_target.middleSpawnFactor)), _target.middleSpawnFactor, 0.0f, 0.5f);
 			_target.initialStartPoints = EditorGUILayout.IntField(UppercaseWords(nameof(_target.initialStartPoints)), _target.initialStartPoints);
 
-			GUI.enabled = _thread is not {IsAlive: true};
 			if (GUILayout.Button(UppercaseWords(nameof(_target.SpreadStartingPoints))))
 			{
 				//TODO: Thread this again
 				_target.SpreadStartingPoints();
 			}
-			GUI.enabled = true;
 
 
 			GUILayout.Label("Stepping Options", labelStyle);
@@ -80,7 +64,7 @@ namespace Editor
 			_target.maxRotationAmountRadians = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.maxRotationAmountRadians)), _target.maxRotationAmountRadians);
 			_target.newRoadChance = EditorGUILayout.Slider(UppercaseWords(nameof(_target.newRoadChance)), _target.newRoadChance, 0.0f, 1.0f);
 
-			GUI.enabled = _target.HasPoints() && _thread is not {IsAlive: true};
+			GUI.enabled = _target.HasPoints();
 			if (GUILayout.Button("Start stepping"))
 			{
 				//TODO: Thread this again
@@ -92,21 +76,19 @@ namespace Editor
 			GUILayout.Label("Merging Options", labelStyle);
 			_target.mergeDistance = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.mergeDistance)), _target.mergeDistance);
 
-			GUI.enabled = _target.HasPoints() && _thread is not {IsAlive: true};
+			GUI.enabled = _target.HasPoints();
 			if (GUILayout.Button(UppercaseWords(nameof(_target.MergeByDistance))))
 			{
-				_thread = new Thread(() => _target.MergeByDistance());
-				_thread.Start();
+				_target.MergeByDistance();
 			}
 			GUI.enabled = true;
 
 
 			GUILayout.Label("Verification Options", labelStyle);
-			GUI.enabled = _target.HasPoints() && _thread is not {IsAlive: true};
+			GUI.enabled = _target.HasPoints();
 			if (GUILayout.Button(UppercaseWords(nameof(_target.VerifyConnections))))
 			{
-				_thread = new Thread(() => _target.VerifyConnections());
-				_thread.Start();
+				_target.VerifyConnections();
 			}
 			GUI.enabled = true;
 
@@ -114,12 +96,12 @@ namespace Editor
 			GUILayout.Label("Mesh Options", labelStyle);
 			_target.meshRadius = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.meshRadius)), _target.meshRadius);
 			_target.textureStretching = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.textureStretching)), _target.textureStretching);
-			GUI.enabled = _target.HasRoadMesh() && _thread is not {IsAlive: true};
+			GUI.enabled = _target.HasRoadMesh();
 			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearRoadMesh))))
 			{
 				_target.ClearRoadMesh();
 			}
-			GUI.enabled = _target.HasRoads() && _thread is not {IsAlive: true};
+			GUI.enabled = _target.HasRoads();
 			if (GUILayout.Button(UppercaseWords(nameof(_target.GenerateRoadMesh))))
 			{
 				_target.GenerateRoadMesh();
@@ -144,17 +126,16 @@ namespace Editor
 			_target.buildingHeightFactorMax = Mathf.Clamp(EditorGUILayout.FloatField(UppercaseWords(nameof(_target.buildingHeightFactorMax)), _target.buildingHeightFactorMax), _target.buildingHeightFactorMin, 2.0f);
 			GUILayout.EndHorizontal();
 
-			GUI.enabled = _target.HasBuildings() && _thread is not {IsAlive: true};
+			GUI.enabled = _target.HasBuildings();
 			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearBuildings))))
 			{
 				_target.ClearBuildings();
 			}
 			GUI.enabled = true;
-			GUI.enabled = _target.HasRoads() && _thread is not {IsAlive: true};
+			GUI.enabled = _target.HasRoads();
 			if (GUILayout.Button(UppercaseWords(nameof(_target.GenerateBuildingsAlongRoads))))
 			{
-				_thread = new Thread(() => _target.GenerateBuildingsAlongRoads());
-				_thread.Start();
+				_target.GenerateBuildingsAlongRoads();
 			}
 			GUI.enabled = true;
 
@@ -162,13 +143,13 @@ namespace Editor
 			GUILayout.Label("Buildings Object Options", labelStyle);
 			_target.buildingsMaterial = ObjectField(UppercaseWords(nameof(_target.buildingsMaterial)), _target.buildingsMaterial);
 
-			GUI.enabled = _target.HasBuildingsObject() && _thread is not {IsAlive: true};
+			GUI.enabled = _target.HasBuildingsObject();
 			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearBuildingsObject))))
 			{
 				_target.ClearBuildingsObject();
 			}
 			GUI.enabled = true;
-			GUI.enabled = _target.HasBuildings() && _thread is not {IsAlive: true};
+			GUI.enabled = _target.HasBuildings();
 			if (GUILayout.Button(UppercaseWords(nameof(_target.GenerateBuildingsObject))))
 			{
 				_target.GenerateBuildingsObject();
@@ -184,13 +165,6 @@ namespace Editor
 			_target.showRoadLines = EditorGUILayout.Toggle(UppercaseWords(nameof(_target.showRoadLines)), _target.showRoadLines);
 			_target.showBuildingBoxes = EditorGUILayout.Toggle(UppercaseWords(nameof(_target.showBuildingBoxes)), _target.showBuildingBoxes);
 
-
-			// if thread is going, repaint the scene every frame, so we can see its progress
-			if (_thread is {IsAlive: true})
-			{
-				SceneView.RepaintAll();
-				Repaint();
-			}
 
 			if (EditorGUI.EndChangeCheck())
 			{
