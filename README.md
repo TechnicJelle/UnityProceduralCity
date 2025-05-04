@@ -2,6 +2,8 @@
 
 A procedural city generation setup in Unity, in the style of Paris from Assassin's Creed: Unity.
 
+Source: https://github.com/TechnicJelle/UnityProceduralCity
+
 ## Features
 - Super cool road generator, from which the rest of the city is generated
 - Most intensive generation steps things happen on a separate thread, so ensure Unity doesn't freeze up during generation
