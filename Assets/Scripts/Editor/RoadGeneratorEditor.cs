@@ -46,6 +46,8 @@ namespace Editor
 			GUILayout.Label("Generation Options", labelStyle);
 			_target.width = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.width)), _target.width);
 			_target.height = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.height)), _target.height);
+			EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_target.collidersToBridgeOver)));
+			EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_target.collidersToAvoid)));
 
 			GUI.enabled = _target.HasPoints();
 			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearRoads))))
@@ -66,22 +68,23 @@ namespace Editor
 			GUI.enabled = _thread is not {IsAlive: true};
 			if (GUILayout.Button(UppercaseWords(nameof(_target.SpreadStartingPoints))))
 			{
-				_thread = new Thread(() => _target.SpreadStartingPoints());
-				_thread.Start();
+				//TODO: Thread this again
+				_target.SpreadStartingPoints();
 			}
 			GUI.enabled = true;
 
 
 			GUILayout.Label("Stepping Options", labelStyle);
 			_target.stepDistance = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.stepDistance)), _target.stepDistance);
+			_target.stepDistanceForBridges = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.stepDistanceForBridges)), _target.stepDistanceForBridges);
 			_target.maxRotationAmountRadians = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.maxRotationAmountRadians)), _target.maxRotationAmountRadians);
 			_target.newRoadChance = EditorGUILayout.Slider(UppercaseWords(nameof(_target.newRoadChance)), _target.newRoadChance, 0.0f, 1.0f);
 
 			GUI.enabled = _target.HasPoints() && _thread is not {IsAlive: true};
 			if (GUILayout.Button("Start stepping"))
 			{
-				_thread = new Thread(() => _target.DoStepping());
-				_thread.Start();
+				//TODO: Thread this again
+				_target.DoStepping();
 			}
 			GUI.enabled = true;
 
@@ -193,6 +196,7 @@ namespace Editor
 			{
 				SceneView.RepaintAll();
 				EditorUtility.SetDirty(_target);
+				serializedObject.ApplyModifiedProperties();
 			}
 		}
 

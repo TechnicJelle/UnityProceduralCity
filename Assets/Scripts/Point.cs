@@ -133,10 +133,38 @@ public class Point
 	{
 		//take a step in the direction that we're going
 		Vector2 newPos = Pos + stepDirection * _roadGenerator.stepDistance;
+
+		//is this new position safe?
+		if (_roadGenerator.IsPlaceToAvoid(newPos))
+		{
+			//if not, we cannot step here
+			//so we stop
+			return;
+		}
+
+		//check if this is not a place to bridge over
+		if (_roadGenerator.IsPlaceToBridgeOver(newPos))
+		{
+			//we can't make this step normally
+			//can we put a bridge over it, though?
+			newPos = Pos + stepDirection * _roadGenerator.stepDistanceForBridges;
+			if (_roadGenerator.IsPlaceToBridgeOver(newPos))
+			{
+				//we could not put a bridge over it either,
+				//so we cannot step here at all
+				return;
+			}
+		}
+
 		//create tentative new point at that new position
 		Point newPoint = new(_roadGenerator, newPos, stepDirection, _splitChance);
 		//create tentative new road with that new point
 		Road newRoad = new(_roadGenerator, this, newPoint);
+		if (newRoad.IntersectsAPlaceToAvoid())
+		{
+			//we cannot step here, because the new road would intersect a place to avoid
+			return;
+		}
 
 		//check whether the new road intersects with any existing roads
 		List<IntersectionData> intersections = new();
@@ -200,6 +228,11 @@ public class Point
 
 			//get the road we intersected with
 			Road roadIntersectedWith = _roadGenerator.Roads[roadIntersectedWithIndex];
+			if (_roadGenerator.IsPlaceToBridgeOver(intersectionPosition))
+			{
+				//we cannot combine at a point that is over the water
+				return;
+			}
 			//get the points of the road we just intersected with
 			Point p1 = roadIntersectedWith.P1;
 			Point p2 = roadIntersectedWith.P2;

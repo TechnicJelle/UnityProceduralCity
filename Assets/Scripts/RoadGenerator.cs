@@ -27,6 +27,12 @@ public class RoadGenerator : MonoBehaviour
 	[SerializeField]
 	public float height = 1000.0f;
 
+	[SerializeField]
+	public List<Collider> collidersToBridgeOver = new();
+
+	[SerializeField]
+	public List<Collider> collidersToAvoid = new();
+
 
 	// Spreading
 	[SerializeField]
@@ -39,6 +45,9 @@ public class RoadGenerator : MonoBehaviour
 	// Stepping
 	[SerializeField]
 	public float stepDistance = 50.0f;
+
+	[SerializeField]
+	public float stepDistanceForBridges = 100.0f;
 
 	[SerializeField]
 	public float maxRotationAmountRadians = 0.4f;
@@ -224,8 +233,13 @@ public class RoadGenerator : MonoBehaviour
 	{
 		for(int i = 0; i < initialStartPoints; i++)
 		{
-			float x = RandomRange(width * (0.5f - middleSpawnFactor), width * (0.5f + middleSpawnFactor));
-			float y = RandomRange(height * (0.5f - middleSpawnFactor), height * (0.5f + middleSpawnFactor));
+			float x;
+			float y;
+			do
+			{
+				x = RandomRange(width * (0.5f - middleSpawnFactor), width * (0.5f + middleSpawnFactor));
+				y = RandomRange(height * (0.5f - middleSpawnFactor), height * (0.5f + middleSpawnFactor));
+			} while(IsPlaceToAvoid(new Vector2(x, y)) || IsPlaceToBridgeOver(new Vector2(x, y)));
 			Points.Add(new Point(this, x, y));
 		}
 	}
@@ -260,6 +274,36 @@ public class RoadGenerator : MonoBehaviour
 		}
 
 		return true;
+	}
+
+	public bool IsPlaceToAvoid(Vector2 newPos)
+	{
+		Vector3 origin = new Vector3(newPos.x, 100, newPos.y) - new Vector3(width * 0.5f, 0, height * 0.5f);
+		Vector3 direction = Vector3.down;
+		if (Physics.Raycast(origin, direction, out RaycastHit hit))
+		{
+			if (collidersToAvoid.Contains(hit.collider))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public bool IsPlaceToBridgeOver(Vector2 newPos)
+	{
+		Vector3 origin = new Vector3(newPos.x, 10, newPos.y) - new Vector3(width * 0.5f, 0, height * 0.5f);
+		Vector3 direction = Vector3.down;
+		if (Physics.Raycast(origin, direction, out RaycastHit hit))
+		{
+			if (collidersToBridgeOver.Contains(hit.collider))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public void MergeByDistance()
@@ -343,6 +387,10 @@ public class RoadGenerator : MonoBehaviour
 			{
 				//check if the road is long enough to place a building
 				if (road.GetMagnitude() < minRoadLengthForBuilding)
+					continue;
+
+				//do not build buildings along a bride over the river...
+				if (road.Bridge)
 					continue;
 
 				GenerateBuildingAlongRoad(road, -1.001f);

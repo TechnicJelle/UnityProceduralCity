@@ -5,10 +5,14 @@ using UnityEngine;
 
 public class Road
 {
+	private const int PLACE_CHECKING_SAMPLES = 10;
+
 	private readonly RoadGenerator _roadGenerator;
 
 	public readonly Point P1;
 	public readonly Point P2;
+
+	public readonly bool Bridge = false;
 
 	private readonly BoundingPolygon _polygon;
 	public BoundingPolygon Polygon => _polygon;
@@ -19,6 +23,18 @@ public class Road
 
 		P1 = p1;
 		P2 = p2;
+
+		//check along multiple positions along the road whether we are a bridge
+		for(int i = 0; i < PLACE_CHECKING_SAMPLES; i++)
+		{
+			float t = i / (float)PLACE_CHECKING_SAMPLES;
+			Vector2 pos = Vector2.Lerp(P1.Pos, P2.Pos, t);
+			if (_roadGenerator.IsPlaceToBridgeOver(pos))
+			{
+				Bridge = true;
+				break;
+			}
+		}
 
 		Vector2 ray = P2.Pos - P1.Pos;
 		Vector2 direction = ray.normalized;
@@ -39,6 +55,21 @@ public class Road
 
 	public Vector2 GetDirection() => (P2.Pos - P1.Pos).normalized;
 
+	///checks along multiple positions along the road whether we're intersecting a place to avoid
+	public bool IntersectsAPlaceToAvoid()
+	{
+		for(int i = 0; i < PLACE_CHECKING_SAMPLES; i++)
+		{
+			float t = i / (float)PLACE_CHECKING_SAMPLES;
+			Vector2 pos = Vector2.Lerp(P1.Pos, P2.Pos, t);
+			if (_roadGenerator.IsPlaceToAvoid(pos))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public Vector2? Intersect(Road other)
 	{
 		return Intersect3(P1.Pos, P2.Pos, other.P1.Pos, other.P2.Pos);
@@ -46,7 +77,11 @@ public class Road
 
 	public void Render()
 	{
-		Gizmos.color = (GetMagnitude() < _roadGenerator.minRoadLengthForBuilding ? Color.red : Color.yellow).WithAlpha(0.3f);
+		Gizmos.color = Bridge
+			? Color.grey
+			: (GetMagnitude() < _roadGenerator.minRoadLengthForBuilding
+				? Color.red
+				: Color.yellow).WithAlpha(0.3f);
 		Gizmos.DrawLine(P1.Pos, P2.Pos);
 	}
 

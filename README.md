@@ -8,6 +8,13 @@ A procedural city generation setup in Unity, in the style of Paris from Assassin
 - Simple depth fog effect
 - Krita texture importer, so .kra files can be directly used as textures, just like any normal image file
 
+## Potential Future Features
+- Snapping the road to the sculpted terrain
+- Way to designate areas with different generator values (Step Distance, for example), 
+  so you can have a city with a dense center and less dense outskirts. And for the island.
+- Put back the threading, by converting the Unity Colliders to my own Bounding Polygons beforehand,
+  and then doing all checks in a thread again. Because those can safely run outside of Unity.
+
 ## Visuals and WIP screenshots
 
 ![image](https://github.com/user-attachments/assets/0a09e1ca-f607-4393-8549-775eafe85140)
