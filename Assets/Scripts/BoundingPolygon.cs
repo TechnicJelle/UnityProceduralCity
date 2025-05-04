@@ -11,6 +11,7 @@ using UnityEngine;
 /// </summary>
 public struct BoundingPolygon
 {
+#if UNITY_EDITOR
 	/// <summary>
 	/// The corners of the bounding polygon,
 	/// in relation to (0,0)
@@ -143,4 +144,5 @@ public struct BoundingPolygon
 		}
 		return new MinMax(min, max);
 	}
+#endif //UNITY_EDITOR
 }

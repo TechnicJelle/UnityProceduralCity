@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class Point
 {
+#if UNITY_EDITOR
 	private readonly RoadGenerator _roadGenerator;
 
 	public Vector2 Pos;
@@ -299,4 +300,5 @@ public class Point
 		vec.y = temp * Mathf.Sin(radians) + vec.y * Mathf.Cos(radians);
 		return vec;
 	}
+#endif //UNITY_EDITOR
 }

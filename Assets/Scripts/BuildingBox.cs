@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class BuildingBox
 {
+#if UNITY_EDITOR
 	private readonly Vector2 _pos;
 	private readonly Vector2 _surface;
 	private readonly float _height;
@@ -139,4 +140,5 @@ public class BuildingBox
 			},
 		};
 	}
+#endif //UNITY_EDITOR
 }

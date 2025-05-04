@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class Road
 {
+#if UNITY_EDITOR
 	private const int PLACE_CHECKING_SAMPLES = 10;
 
 	private readonly RoadGenerator _roadGenerator;
@@ -143,4 +144,5 @@ public class Road
 		float iY = p0Y + t * s1Y;
 		return new Vector2(iX, iY);
 	}
+#endif //UNITY_EDITOR
 }

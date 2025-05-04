@@ -11,6 +11,7 @@ using Random = System.Random;
 [RequireComponent(typeof(MeshRenderer))]
 public class RoadGenerator : MonoBehaviour
 {
+#if UNITY_EDITOR
 
 #region Options
 
@@ -572,4 +573,6 @@ public class RoadGenerator : MonoBehaviour
 		MeshRenderer meshRenderer = roofsObject.AddComponent<MeshRenderer>();
 		meshRenderer.sharedMaterial = roofsMaterial;
 	}
+
+	#endif //UNITY_EDITOR
 }
