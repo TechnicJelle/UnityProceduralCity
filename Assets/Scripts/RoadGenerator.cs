@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Random = System.Random;
 
 [RequireComponent(typeof(MeshFilter))]
@@ -97,6 +99,14 @@ public class RoadGenerator : MonoBehaviour
 	public Material? buildingsMaterial;
 
 
+	// Roofs Object
+	[SerializeField]
+	public Material? roofsMaterial;
+
+	[SerializeField]
+	public List<GameObject> roofPrefabs = new();
+
+
 	// Debug Drawing
 	[SerializeField]
 	public bool showPointsSphere = true;
@@ -122,6 +132,11 @@ public class RoadGenerator : MonoBehaviour
 
 	public const float ANTI_Z = 0.1f;
 	private const string BUILDINGS_OBJECT_NAME = "Buildings";
+	private const string BUILDINGS_ROOFS_OBJECT_NAME = "BuildingsRoofs";
+
+	private const string ROADS_MESH_CACHE_PATH = "Assets/MeshCaches/Roads.mesh";
+	private const string BUILDINGS_MESH_CACHE_PATH = "Assets/MeshCaches/Buildings.mesh";
+	private const string BUILDINGS_ROOFS_MESH_CACHE_PATH = "Assets/MeshCaches/BuildingsRoofs.mesh";
 
 	public readonly List<Point> Points = new();
 	public readonly List<Road> Roads = new();
@@ -141,12 +156,20 @@ public class RoadGenerator : MonoBehaviour
 
 	public bool HasBuildingsObject() => transform.Find(BUILDINGS_OBJECT_NAME) != null;
 
+	public bool HasRoofsObject() => transform.Find(BUILDINGS_ROOFS_OBJECT_NAME) != null;
+
 	public void ResetRng() => _rng = null;
 
 	public float RandomRange(float minNumber, float maxNumber)
 	{
 		_rng ??= automaticSeed ? new Random() : new Random(seed);
 		return (float)_rng.NextDouble() * (maxNumber - minNumber) + minNumber;
+	}
+
+	public int RandomRange(int minNumber, int maxNumber)
+	{
+		_rng ??= automaticSeed ? new Random() : new Random(seed);
+		return _rng.Next(minNumber, maxNumber);
 	}
 
 	private void OnDrawGizmosSelected()
@@ -351,6 +374,8 @@ public class RoadGenerator : MonoBehaviour
 		MeshFilter meshFilter = GetComponent<MeshFilter>();
 		meshFilter.sharedMesh.Clear();
 		meshFilter.sharedMesh = null;
+
+		AssetDatabase.DeleteAsset(ROADS_MESH_CACHE_PATH);
 	}
 
 	/// <remarks>cannot be called on a separate thread, due to using Unity APIs</remarks>
@@ -370,8 +395,11 @@ public class RoadGenerator : MonoBehaviour
 		combinedMesh.RecalculateNormals();
 		combinedMesh.RecalculateBounds();
 		combinedMesh.Optimize();
+
+		AssetDatabase.CreateAsset(combinedMesh, ROADS_MESH_CACHE_PATH);
+
 		MeshFilter meshFilter = GetComponent<MeshFilter>();
-		meshFilter.sharedMesh = combinedMesh;
+		meshFilter.sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(ROADS_MESH_CACHE_PATH);
 	}
 
 	public void ClearBuildings()
@@ -446,6 +474,7 @@ public class RoadGenerator : MonoBehaviour
 				DestroyImmediate(child.gameObject);
 			}
 		}
+		AssetDatabase.DeleteAsset(BUILDINGS_MESH_CACHE_PATH);
 	}
 
 	/// <remarks>cannot be called on a separate thread, due to using Unity APIs</remarks>
@@ -456,15 +485,17 @@ public class RoadGenerator : MonoBehaviour
 		buildingsObject.transform.localPosition = Vector3.zero;
 		buildingsObject.transform.localRotation = Quaternion.identity;
 		buildingsObject.transform.localScale = Vector3.one;
+		buildingsObject.isStatic = true;
 
+		//The points are stored offset, so we move the models by half width and height
+		Matrix4x4 halfOff = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, 0));
 		//create the mesh
 		CombineInstance[] combine = new CombineInstance[_buildingBoxes.Count];
 		for(int i = 0; i < combine.Length; i++)
 		{
 			BuildingBox buildingBox = _buildingBoxes[i];
 			combine[i].mesh = buildingBox.ToMesh();
-			//The points are stored offset, so we move the models by half width and height
-			combine[i].transform = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, 0));
+			combine[i].transform = halfOff;
 		}
 
 		Mesh combinedMesh = new() {name = "Buildings"};
@@ -473,10 +504,66 @@ public class RoadGenerator : MonoBehaviour
 		combinedMesh.RecalculateBounds();
 		combinedMesh.Optimize();
 
+		AssetDatabase.CreateAsset(combinedMesh, BUILDINGS_MESH_CACHE_PATH);
+
 		MeshFilter meshFilter = buildingsObject.AddComponent<MeshFilter>();
-		meshFilter.sharedMesh = combinedMesh;
+		meshFilter.sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(BUILDINGS_MESH_CACHE_PATH);
 
 		MeshRenderer meshRenderer = buildingsObject.AddComponent<MeshRenderer>();
 		meshRenderer.sharedMaterial = buildingsMaterial;
+	}
+
+	public void ClearRoofsObject()
+	{
+		Transform[] children = transform.GetComponentsInChildren<Transform>();
+		foreach(Transform child in children)
+		{
+			if (child.name == BUILDINGS_ROOFS_OBJECT_NAME)
+			{
+				DestroyImmediate(child.gameObject);
+			}
+		}
+		AssetDatabase.DeleteAsset(BUILDINGS_ROOFS_MESH_CACHE_PATH);
+	}
+
+	public void GenerateRoofsObject()
+	{
+		GameObject roofsObject = new(BUILDINGS_ROOFS_OBJECT_NAME);
+		roofsObject.transform.SetParent(transform);
+		roofsObject.transform.localPosition = Vector3.zero;
+		roofsObject.transform.localRotation = Quaternion.identity;
+		roofsObject.transform.localScale = Vector3.one;
+		roofsObject.isStatic = true;
+
+		//The points are stored offset, so we move the models by half width and height
+		Matrix4x4 halfOff = Matrix4x4.Translate(new Vector3(-width * 0.5f, -height * 0.5f, 0));
+		//create the mesh
+		CombineInstance[] combine = new CombineInstance[_buildingBoxes.Count];
+		for(int i = 0; i < combine.Length; i++)
+		{
+			GameObject roofPrefab = roofPrefabs[RandomRange(0, roofPrefabs.Count)];
+			Mesh roofMesh = roofPrefab.GetComponent<MeshFilter>().sharedMesh;
+			combine[i].mesh = roofMesh;
+
+			BuildingBox buildingBox = _buildingBoxes[i];
+			combine[i].transform = halfOff * buildingBox.GetRoofMatrix();
+		}
+		Mesh combinedMesh = new()
+		{
+			name = "BuildingsRoofs",
+			indexFormat = IndexFormat.UInt32,
+		};
+		combinedMesh.CombineMeshes(combine);
+		combinedMesh.RecalculateNormals();
+		combinedMesh.RecalculateBounds();
+		combinedMesh.Optimize();
+
+		AssetDatabase.CreateAsset(combinedMesh, BUILDINGS_ROOFS_MESH_CACHE_PATH);
+
+		MeshFilter meshFilter = roofsObject.AddComponent<MeshFilter>();
+		meshFilter.sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(BUILDINGS_ROOFS_MESH_CACHE_PATH);
+
+		MeshRenderer meshRenderer = roofsObject.AddComponent<MeshRenderer>();
+		meshRenderer.sharedMaterial = roofsMaterial;
 	}
 }

@@ -157,6 +157,24 @@ namespace Editor
 			GUI.enabled = true;
 
 
+			GUILayout.Label("Roofs Options", labelStyle);
+			_target.roofsMaterial = ObjectField(UppercaseWords(nameof(_target.roofsMaterial)), _target.roofsMaterial);
+			EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(_target.roofPrefabs)));
+
+			GUI.enabled = _target.HasRoofsObject();
+			if (GUILayout.Button(UppercaseWords(nameof(_target.ClearRoofsObject))))
+			{
+				_target.ClearRoofsObject();
+			}
+			GUI.enabled = true;
+			GUI.enabled = _target.HasBuildings();
+			if (GUILayout.Button(UppercaseWords(nameof(_target.GenerateRoofsObject))))
+			{
+				_target.GenerateRoofsObject();
+			}
+			GUI.enabled = true;
+
+
 			GUILayout.Label("Debug Drawing Options", labelStyle);
 			_target.showPointsSphere = EditorGUILayout.Toggle(UppercaseWords(nameof(_target.showPointsSphere)), _target.showPointsSphere);
 			_target.sphereSizeDefault = EditorGUILayout.FloatField(UppercaseWords(nameof(_target.sphereSizeDefault)), _target.sphereSizeDefault);

@@ -34,6 +34,12 @@ public class BuildingBox
 		_polygon = new BoundingPolygon(corners);
 	}
 
+	public Matrix4x4 GetRoofMatrix() => Matrix4x4.TRS(
+		new Vector3(_pos.x, _pos.y, -_height),
+		_rotation,
+		new Vector3(_surface.x, _surface.y, -_height) * 50f //TODO: Figure out why this is needed, and specifically why 50???
+	);
+
 	public bool IntersectsAPlaceToAvoid(RoadGenerator roadGenerator)
 	{
 		foreach(Vector2 corner in _polygon.Corners)
