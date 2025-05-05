@@ -31,6 +31,19 @@ public class FreeFlight : MonoBehaviour
 			_yRot += mx * mouseSpeed;
 		}
 
+		if (Input.GetMouseButtonDown(1))
+		{
+			Cursor.lockState = CursorLockMode.Locked;
+			Cursor.visible = false;
+			Start();
+		}
+		else if (Input.GetMouseButtonUp(1))
+		{
+			Cursor.lockState = CursorLockMode.None;
+			Cursor.visible = true;
+			Start();
+		}
+
 		transform.rotation = Quaternion.Euler(_xRot, _yRot, 0);
 
 		float dx = Input.GetAxis("Horizontal");
