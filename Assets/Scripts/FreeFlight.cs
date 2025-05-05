@@ -1,3 +1,6 @@
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 public class FreeFlight : MonoBehaviour
@@ -38,5 +41,14 @@ public class FreeFlight : MonoBehaviour
 		Vector3 transformRight = transform.right * (moveSpeed * dx);
 		Vector3 transformUp = transform.up * (moveSpeed * dz);
 		transform.position += multiplier * Time.deltaTime * (transformForward + transformRight + transformUp);
+
+		if (Input.GetKeyDown(KeyCode.Escape))
+		{
+#if UNITY_EDITOR
+			EditorApplication.isPlaying = false;
+#else
+			Application.Quit();
+#endif
+		}
 	}
 }
